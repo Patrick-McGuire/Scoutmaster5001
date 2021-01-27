@@ -9,7 +9,6 @@ Scoutmaster5001 is entirely based in Google Drive, primarily using a Google Apps
 - Various types of inputs for match scouting able to be configured from the google sheet: Checkbox, text, +/-, slider, dropdown
 - Pulls data from the TBA api: Match Schedule and Match Start Times
 - Data visuation: Configurable Graph, data tables
-- Robot tinder: Select from 2 random teams which one is better, repeat 100-200 times, and get a rough picklist. Still in progress. 
 - Coming soon mabey? Team pictures (stored in Drive), More data visuation, Pit Scouting
 
 ## Setup

@@ -18,16 +18,12 @@
   var checkboxConfigType = "Checkbox"
   var sliderConfigType = "Slider"
 
+
+  // Setup
   getData()
   setupEvents()
   updateOfflineSubmit()
-
-  window.onbeforeunload = function() { 
-    if(!online()) {
-      return "Are you sure you want to leave?"; 
-    }
-  }
-
+  addUnloadMessage()
 
 
   ////////// Overall Running //////////
@@ -45,6 +41,13 @@
     document.getElementById('position').addEventListener('input', positionChangeEvent);
     document.getElementById('teamNumber').addEventListener('input', matchChangeEvent);
     setInterval(online, 500);
+  }
+  function addUnloadMessage() {
+    window.onbeforeunload = function() { 
+      if(!online()) {
+        return "Are you sure you want to leave?"; 
+      }
+    }
   }
   
   ////////// Data Visuasation ////////// 

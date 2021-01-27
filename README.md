@@ -1,5 +1,4 @@
 # Scoutmaster5001
-
 ## About
 Scoutmaster5001 is a web based scouting app intended for FRC (FIRST Robotics Competition) competitions. The inspiration for this is a somewhat similar scouting system created by team #294 (I think?), Scoutmaster5000. Scoutmaster5001 is designed to not require any paid services to run, and to be easy for a person without web development experience to set up and use. 
 

@@ -11,11 +11,13 @@
   var storedDataToSubmit = "Scoutmaster5001storedDataToSubmit"
   var stringSeparator1 = "/\\"
   var stringSeparator2 = "<>"
+  var stringSeparator3 = "->"
   var plusMinusConfigType = "Plus/Minus"
   var textConfigType = "Text"
   var dropdownConfigType = "Dropdown"
   var checkboxConfigType = "Checkbox"
   var sliderConfigType = "Slider"
+  var sliderIdUniqeAdder = "thisisunique"
 
 
   // Setup
@@ -49,18 +51,6 @@
   }
   
   ////////// Data Visuasation ////////// 
-  function removeItemAll(arr, value) {
-    var i = 0;
-    while (i < arr.length) {
-      if (arr[i] === value) {
-        arr.splice(i, 1);
-      } else {
-        ++i;
-      }
-    }
-    return arr;
-  }
-  
   function createMatchLookup() {
     var matchSchedule = getMatchSchedule()
     
@@ -442,12 +432,15 @@
     return '<p>' + name + '</p><textarea id="' + id + '" class="commentInput"></textarea><br>'
   }
   // Gets the html for a slider
-  function getSliderHTML(name, id, max) {
+  function getSliderHTML(name, id, options) {
+    options = options.split(",")
+    var max = parseInt(options[1]) + 1
+    var min = parseInt(options[0]) + 1
     name += ": "
-    var id2 = id + "thisisunique"
+    var id2 = id + sliderIdUniqeAdder
     var apost = "'"
-    var line1 = '<br><label>' + name + '</label><input type="range" min="1" max="' + max + '" value="0" class="sliderRange" onchange="sliderDrag(' + apost + id2 + apost + "," + apost + id + apost + ')" id="' + id2 + '">'
-    var line2 = '<input type="text" id="' + id + '" value="0" onchange="sliderDrag(' + apost + id + apost + "," + apost + id2 + apost + ')" class="sliderText"><br>'
+    var line1 = '<br><label>' + name + '</label><input type="range" min="' + min + '" max="' + max + '" value="' + (min - 1) + '" class="sliderRange" onchange="sliderDrag(' + apost + id2 + apost + "," + apost + id + apost + ')" id="' + id2 + '">'
+    var line2 = '<input type="text" id="' + id + '" value="' + (min - 1) + '" onchange="sliderDrag(' + apost + id + apost + "," + apost + id2 + apost + ')" class="sliderText"><br>'
     return line1 + line2
   }
   // Gets the html for a dropdown
@@ -457,7 +450,12 @@
     var html = '<br><label>' + name + '</label><select name="position" id="' + id + '">'
     // Add all the lines, note that the value of the select will be the indedx of the name in the options data
     for(var i = 0; i < options.length; i++) {
-      html = html + '<option value="' + options[i] + '">' + options[i] + '</option>'
+      var splitOptions = options[i].split(stringSeparator3)
+      if(splitOptions.length == 2) {
+        html = html + '<option value="' + splitOptions[1] + '">' + splitOptions[0] + '</option>'
+      } else {
+        html = html + '<option value="' + options[i] + '">' + options[i] + '</option>'
+      }
     }
     return html + '</select><br>'
   }
@@ -571,10 +569,13 @@
       if(document.getElementById(ids[i]).className == "checkbox") {
         json[ids[i]] = document.getElementById(ids[i]).checked
         document.getElementById(ids[i]).checked = false
+      } else if(document.getElementById(ids[i]).className == "sliderText") {
+        var min = parseInt(document.getElementById(ids[i] + sliderIdUniqeAdder).min) - 1
+        document.getElementById(ids[i] + sliderIdUniqeAdder).value = min
+        json[ids[i]] = document.getElementById(ids[i]).value
+        document.getElementById(ids[i]).value = min
       } else if(document.getElementById(ids[i]).className != "sliderRange") {
         json[ids[i]] = document.getElementById(ids[i]).value
-        document.getElementById(ids[i]).value = 0
-      } else {
         document.getElementById(ids[i]).value = 0
       }
     }
@@ -626,6 +627,17 @@
   
   
   ////////// Generic Functions //////////
+  function removeItemAll(arr, value) {
+    var i = 0;
+    while (i < arr.length) {
+      if (arr[i] === value) {
+        arr.splice(i, 1);
+      } else {
+        ++i;
+      }
+    }
+    return arr;
+  }
   function getOccurrence(array, value) {
     var count = 0;
     array.forEach((v) => (v === value && count++));

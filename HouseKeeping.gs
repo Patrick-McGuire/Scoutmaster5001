@@ -3,7 +3,6 @@
 var dataPulling = 'Data Pulling'
 var dataSheet = 'Data'
 
-
 var scouting = 'Scouting'
 var fakeLogs = 'FakeLogs'
 

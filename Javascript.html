@@ -8,7 +8,6 @@
   var dataEntryConfigTeleStorageID = "Scoutmaster5001dataEntryConfigTeleStorageID"
   var teamLookupConfigStorageID = "Scoutmaster5001teamLookupConfigStorageID"
   var matchDataStorageID = "Scoutmaster5001matchDataStorageID"
-  var robotTinderStorageID = "Scoutmaster5001robotTinderStorageID"
   var storedDataToSubmit = "Scoutmaster5001storedDataToSubmit"
   var stringSeparator1 = "/\\"
   var stringSeparator2 = "<>"
@@ -34,7 +33,6 @@
     createGraphPage()
     createTeamLookup()
     createMatchLookup()
-    createRobotTinder()
   }
   function setupEvents() {
     document.getElementById('matchNumber').addEventListener('input', matchChangeEvent);
@@ -61,86 +59,6 @@
       }
     }
     return arr;
-  }
-  
-  
-  function createRobotTinder() {
-    var teams = getTeams()
-    var apost = "'"
-    
-//    if(localStorage.getItem(robotTinderStorageID) != null) {
-//      var dataToStore = localStorage.getItem(robotTinderStorageID).split(stringSeparator1)
-//      var teamInstences = []
-//      for(var j = 0; j < dataToStore.length; j++) {
-//        teamInstences.push(dataToStore[j].split(">")[0])
-//        teamInstences.push(dataToStore[j].split(">")[1])
-//      }
-//      var minOc = 1000
-//      var lastMin = 0
-//      for(var j = 0; j < teams.length; j++) {
-//        var teamOccurrence = getOccurrence(teamInstences, teams[j])
-//        if(teamOccurrence < minOc) {
-//          lastMin = minOc
-//          minOc = teamOccurrence
-//        }
-//      }
-//      for(var j = 0; j < teams.length; j++) {
-//        var teamOccurrence = getOccurrence(teamInstences, teams[j])
-//        if(teamOccurrence != minOc) {
-//          teams = removeItemAll(teams, teams[j])
-//        }
-//      }
-//      if(teams.length < 2) {
-//        var teamsA = getTeams()
-//        for(var j = 0; j < teamsA.length; j++) {
-//          var teamOccurrence = getOccurrence(teamInstences, teamsA[j])
-//          if(teamOccurrence != minOc || teamOccurrence != lastMin) {
-//            teams = removeItemAll(teams, teams[j])
-//          }
-//        }
-//        teams = teamsA
-//      }
-//    }
-   
-    
-    var teamA = teams[Math.floor(Math.random() * teams.length)];
-    for(var i = 0; i < 1000; i++) {
-      var teamB = teams[Math.floor(Math.random() * teams.length)];
-      if(teamB != teamA) { break; }
-    }
-    
-    var html = '<div class="row">'
-    
-    html += '<div class="column">'
-    html += '<h3>' + teamA + '</h3>'
-    html += '<button type="button" id="teamASubmit" onclick="tinderSubmit(' + apost + teamA + ">" + teamB + apost + ')">Choose This Team</button><br><br>'
-    html += getTeamLookupHTML(teamA)
-    html += '</div>'
-    
-    html += '<div class="column">'
-    html += '<h3>' + teamB + '</h3>'
-    html += '<button type="button" id="teamBSubmit" onclick="tinderSubmit(' + apost + teamB + ">" + teamA + apost + ')">Choose This Team</button><br><br>'
-    html += getTeamLookupHTML(teamB)
-    html += '</div>'
-    
-    html += '</div>'
-
-
-    document.getElementById("robotTinderDiv").innerHTML = html
-  }
-  
-  function tinderSubmit(output) {
-    var dataToStore = []
-    if(localStorage.getItem(robotTinderStorageID) != null) { dataToStore = localStorage.getItem(robotTinderStorageID).split(stringSeparator1) }
-    dataToStore.push(output)
-    localStorage.setItem(robotTinderStorageID, dataToStore.join(stringSeparator1))
-    createRobotTinder()
-  }
-  
-  function storeTinder() {
-    var output = localStorage.getItem(robotTinderStorageID).split(stringSeparator1)
-    google.script.run.submitTinder(output)
-    localStorage.removeItem(robotTinderStorageID)
   }
   
   function createMatchLookup() {
@@ -763,7 +681,7 @@
     // Add the specific color to the button used to open the tab content
     elmnt.style.backgroundColor = color;
     
-    if(pageName == "Tab4") {
+    if(pageName == "Tab5") {
       if(document.getElementById("xAxisGraphSelector").innerHTML != "") {
         updateGraph()
       }

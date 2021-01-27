@@ -567,7 +567,10 @@
     json["team"] = document.getElementById("teamNumber").value
     for(var i = 0; i < ids.length; i++) {
       if(document.getElementById(ids[i]).className == "checkbox") {
-        json[ids[i]] = document.getElementById(ids[i]).checked
+        json[ids[i]] = "0"
+        if(document.getElementById(ids[i]).checked == true) {
+          json[ids[i]] = "1"
+        }
         document.getElementById(ids[i]).checked = false
       } else if(document.getElementById(ids[i]).className == "sliderText") {
         var min = parseInt(document.getElementById(ids[i] + sliderIdUniqeAdder).min) - 1

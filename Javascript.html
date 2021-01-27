@@ -1,0 +1,771 @@
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script>
+  // Constants
+  var matchScheduleStorageID = "Scoutmaster5001matchScheduleStorageID"
+  var customDataConfigStorageID = "Scoutmaster5001customDataConfigStorageID"
+  var dataEntryConfigAutoStorageID = "Scoutmaster5001dataEntryConfigAutoStorageID"
+  var dataEntryConfigTeleStorageID = "Scoutmaster5001dataEntryConfigTeleStorageID"
+  var teamLookupConfigStorageID = "Scoutmaster5001teamLookupConfigStorageID"
+  var matchDataStorageID = "Scoutmaster5001matchDataStorageID"
+  var robotTinderStorageID = "Scoutmaster5001robotTinderStorageID"
+  var storedDataToSubmit = "Scoutmaster5001storedDataToSubmit"
+  var stringSeparator1 = "/\\"
+  var stringSeparator2 = "<>"
+  var plusMinusConfigType = "Plus/Minus"
+  var textConfigType = "Text"
+  var dropdownConfigType = "Dropdown"
+  var checkboxConfigType = "Checkbox"
+  var sliderConfigType = "Slider"
+
+  getData()
+  setupEvents()
+  updateOfflineSubmit()
+
+  window.onbeforeunload = function() { 
+    if(!online()) {
+      return "Are you sure you want to leave?"; 
+    }
+  }
+
+
+
+  ////////// Overall Running //////////
+  function generatePage() {
+    createMatchSchedule()
+    createScoutingDataEntry()
+    createTeamList()
+    createGraphPage()
+    createTeamLookup()
+    createMatchLookup()
+    createRobotTinder()
+  }
+  function setupEvents() {
+    document.getElementById('matchNumber').addEventListener('input', matchChangeEvent);
+    document.getElementById('position').addEventListener('input', positionChangeEvent);
+    document.getElementById('teamNumber').addEventListener('input', matchChangeEvent);
+    setInterval(online, 500);
+  }
+  
+  ////////// Data Visuasation ////////// 
+  function removeItemAll(arr, value) {
+    var i = 0;
+    while (i < arr.length) {
+      if (arr[i] === value) {
+        arr.splice(i, 1);
+      } else {
+        ++i;
+      }
+    }
+    return arr;
+  }
+  
+  
+  function createRobotTinder() {
+    var teams = getTeams()
+    var apost = "'"
+    
+//    if(localStorage.getItem(robotTinderStorageID) != null) {
+//      var dataToStore = localStorage.getItem(robotTinderStorageID).split(stringSeparator1)
+//      var teamInstences = []
+//      for(var j = 0; j < dataToStore.length; j++) {
+//        teamInstences.push(dataToStore[j].split(">")[0])
+//        teamInstences.push(dataToStore[j].split(">")[1])
+//      }
+//      var minOc = 1000
+//      var lastMin = 0
+//      for(var j = 0; j < teams.length; j++) {
+//        var teamOccurrence = getOccurrence(teamInstences, teams[j])
+//        if(teamOccurrence < minOc) {
+//          lastMin = minOc
+//          minOc = teamOccurrence
+//        }
+//      }
+//      for(var j = 0; j < teams.length; j++) {
+//        var teamOccurrence = getOccurrence(teamInstences, teams[j])
+//        if(teamOccurrence != minOc) {
+//          teams = removeItemAll(teams, teams[j])
+//        }
+//      }
+//      if(teams.length < 2) {
+//        var teamsA = getTeams()
+//        for(var j = 0; j < teamsA.length; j++) {
+//          var teamOccurrence = getOccurrence(teamInstences, teamsA[j])
+//          if(teamOccurrence != minOc || teamOccurrence != lastMin) {
+//            teams = removeItemAll(teams, teams[j])
+//          }
+//        }
+//        teams = teamsA
+//      }
+//    }
+   
+    
+    var teamA = teams[Math.floor(Math.random() * teams.length)];
+    for(var i = 0; i < 1000; i++) {
+      var teamB = teams[Math.floor(Math.random() * teams.length)];
+      if(teamB != teamA) { break; }
+    }
+    
+    var html = '<div class="row">'
+    
+    html += '<div class="column">'
+    html += '<h3>' + teamA + '</h3>'
+    html += '<button type="button" id="teamASubmit" onclick="tinderSubmit(' + apost + teamA + ">" + teamB + apost + ')">Choose This Team</button><br><br>'
+    html += getTeamLookupHTML(teamA)
+    html += '</div>'
+    
+    html += '<div class="column">'
+    html += '<h3>' + teamB + '</h3>'
+    html += '<button type="button" id="teamBSubmit" onclick="tinderSubmit(' + apost + teamB + ">" + teamA + apost + ')">Choose This Team</button><br><br>'
+    html += getTeamLookupHTML(teamB)
+    html += '</div>'
+    
+    html += '</div>'
+
+
+    document.getElementById("robotTinderDiv").innerHTML = html
+  }
+  
+  function tinderSubmit(output) {
+    var dataToStore = []
+    if(localStorage.getItem(robotTinderStorageID) != null) { dataToStore = localStorage.getItem(robotTinderStorageID).split(stringSeparator1) }
+    dataToStore.push(output)
+    localStorage.setItem(robotTinderStorageID, dataToStore.join(stringSeparator1))
+    createRobotTinder()
+  }
+  
+  function storeTinder() {
+    var output = localStorage.getItem(robotTinderStorageID).split(stringSeparator1)
+    google.script.run.submitTinder(output)
+    localStorage.removeItem(robotTinderStorageID)
+  }
+  
+  function createMatchLookup() {
+    var matchSchedule = getMatchSchedule()
+    
+    // Create the HTML for the dropdown menue to select teams
+    var html = '<label for="teamLookupTeam">Match:  </label><select name="Team" id="matchLookupMatch" onchange="createMatchLookupDataTable()">'
+    for(var i = 1; i <= matchSchedule.length; i++) { html += '<option value="' + i + '">' + i + '</option>' }
+    html += "</select><br><br>"
+    document.getElementById("matchLookupDiv").innerHTML = html
+    createMatchLookupDataTable()
+  }
+  
+  function createMatchLookupDataTable() {
+    var matchSchedule = getMatchSchedule()
+    var match = parseInt(document.getElementById("matchLookupMatch").value)
+    var teams = matchSchedule[match - 1]
+    var html = '<div class="row">'
+    
+    html += '<div class="column">'
+    html += '<h3>Red</h3>'
+    html += "<p>" + teams[0] + '</p>'
+    html += getTeamLookupHTML(teams[0])
+    html += "<p>" + teams[1] + '</p>'
+    html += getTeamLookupHTML(teams[1])
+    html += "<p>" + teams[2] + '</p>'
+    html += getTeamLookupHTML(teams[2])
+    html += '</div>'
+    
+    html += '<div class="column">'
+    html += '<h3>Blue</h3>'
+    html += "<p>" + teams[3] + '</p>'
+    html += getTeamLookupHTML(teams[3])
+    html += "<p>" + teams[4] + '</p>'
+    html += getTeamLookupHTML(teams[4])
+    html += "<p>" + teams[5] + '</p>'
+    html += getTeamLookupHTML(teams[5])
+    html += '</div>'
+    
+    html += '</div>'
+
+
+    document.getElementById("matchLookupDiv2").innerHTML = html
+  }
+  
+  function createTeamLookup() {
+    // Get the data we will need
+    var teams = getTeams()
+    
+    // Create the HTML for the dropdown menue to select teams
+    var html = '<label for="teamLookupTeam">Team:  </label><select name="Team" id="teamLookupTeam" onchange="createTeamLookupDataTable()" onblur="createTeamLookupDataTable()">'
+    for(var i = 0; i < teams.length; i++) { html += '<option value="' + teams[i] + '">' + teams[i] + '</option>' }
+    html += "</select><br><br>"
+    document.getElementById("teamLookupDiv").innerHTML = html
+    
+    createTeamLookupDataTable()
+  }
+  
+  function createTeamLookupDataTable() {
+    var team = document.getElementById("teamLookupTeam").value
+    document.getElementById("teamLookupDiv2").innerHTML = getTeamLookupHTML(team) 
+  }
+  
+  function getTeamLookupHTML(team) {
+    var configData = getCustomDataConfig()
+    var scoutingData = getMatchData()
+    var lookupConfigData = getTeamLookupConfig()
+    
+    var rowsNum = parseInt(lookupConfigData[0][0])
+    var listDataPoints = []
+    var compiledDataPoints = []
+    for(var i = 1; i < lookupConfigData.length; i++) {
+      if(lookupConfigData[i][1] == "Average") {
+        compiledDataPoints.push(lookupConfigData[i][0])
+      } else if(lookupConfigData[i][1] == "List All") {
+        listDataPoints.push(lookupConfigData[i][0])
+      }
+    }
+
+    
+    var htmlTable = '<table class="teamLookupTable">'
+    for(var i = 0; i < compiledDataPoints.length / rowsNum; i++) {
+      htmlTable += '<tr class="teamLookupTable">'
+      for(var j = 0; j < rowsNum; j++) {
+        if(compiledDataPoints[i*rowsNum + j] != undefined) { htmlTable += '<th class="tableAA">' + compiledDataPoints[i*rowsNum + j]+ '</th>' }
+      }
+      htmlTable += '</tr><tr class="teamLookupTable">'
+      for(var j = 0; j < rowsNum; j++) {
+        if(compiledDataPoints[i*rowsNum + j] != undefined) { 
+          htmlTable += '<td class="table">' + getDatapoint(team, compiledDataPoints[i*rowsNum + j], true) + '</td>' 
+        }
+      }
+      htmlTable += '</tr>'
+    }
+    for(var i = 0; i < listDataPoints.length; i++) {
+      htmlTable += '<tr class="teamLookupTable">'
+      htmlTable += '<th class="tableAA">' + listDataPoints[i]+ '</th>'
+      var data = getDatapoint(team, listDataPoints[i], false)
+
+      for(var j = 0; j < data[0].length; j++) {
+        if((j + 1) % rowsNum == 0 && j != 0) { htmlTable += '</tr><tr class="teamLookupTable">' }
+        htmlTable += '<td class="table">' + data[1][j] + ": " + data[0][j] + '</td>'
+      }
+      htmlTable += '</tr>'
+    }
+    
+    htmlTable += '</table>'
+    return htmlTable
+  }
+  
+  function getDatapoint(team, datapoint, isAv) {
+    var scoutingData = getMatchData()
+    var configData = getCustomDataConfig()
+    var count = 0;
+    var sum = 0;
+    var text = ""
+    var isText = false
+    var outList = []
+    var matchesList = []
+    for(var j = 0; j < scoutingData.length; j++) {
+      var json = JSON.parse(scoutingData[j])
+      var matchNum = json.match
+      if(json.team == team) {
+        for(var k = 0; k < configData.length; k++) {
+          if(configData[k][0] == datapoint) {
+            for(var l = 2; l < configData[k].length; l++) {
+              if(configData[k][1] == "Numeric") {
+                sum += parseInt(json[configData[k][l]])
+                isText = false
+              } else {
+                text += json[configData[k][l]]
+                isText = true
+              }
+            }
+          }    
+        }
+        if(isAv) {
+          count++;
+        } else {
+          if(!isText) {
+            outList.push(sum)
+            matchesList.push(matchNum)
+            sum = 0
+          } else {
+            outList.push(text)
+            matchesList.push(matchNum)
+            text = ""
+          }
+            
+        }
+      }
+    }
+    if(isAv) {
+      return sum / count
+    }
+    return [outList, matchesList]
+  }
+  
+  function hi() {
+    alert("Hi!")
+  }
+  
+  function updateGraph() {
+    var xID = document.getElementById("xAxisGraphSelector").value
+    var yID = document.getElementById("yAxisGraphSelector").value
+    var configData = getCustomDataConfig()
+    var scoutingData = getMatchData()
+    var teams = getTeams()
+    var highlighttTeamNumber = document.getElementById("highlighttTeamNumber").value
+
+    // Create the data strucure that is needed to create the graph
+    var data = []
+    for(var i = 0; i < teams.length; i++) {
+      var team = teams[i]
+      var color = "white"
+      if(team == highlighttTeamNumber) { color = "blue" }
+      data.push([getDatapoint(team, xID, true), getDatapoint(team, yID, true), team, 'point {size: 4; fill-color: ' + color + '}'])
+    }
+    generateGraph(xID + " vs " + yID, xID, yID, data)
+  }
+      
+  
+  function createGraphPage() {
+    var configData = getCustomDataConfig()
+    var html = ""
+    for(var i = 0; i < configData.length; i++) { 
+      if(configData[i][1] == "Numeric") {
+        html += '<option value="' + configData[i][0] + '">' + configData[i][0] + '</option>' 
+      }
+    }  
+    document.getElementById("xAxisGraphSelector").innerHTML = html
+    document.getElementById("yAxisGraphSelector").innerHTML = html
+    updateGraph()
+  }
+  
+  // Must be called while the graph tab is selected, and after the tabs are set up in code
+  function generateGraph(title, hAxisTitle, vAxisTitle, rawData) {
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      
+      
+      // data format: [[<x>, <y>, <team>], [<x>, <y>, <team>], etc]
+      function drawChart() {
+        var refData = [['X', 'Y', {role: 'annotation'}, {'type': 'string', 'role': 'style'}]]
+        for(var i = 0; i < rawData.length; i++) {
+          refData.push(rawData[i])
+        }
+      
+        var data = google.visualization.arrayToDataTable(refData);
+        var options = {
+          title:title,
+          titleTextStyle: { color: 'white' },
+          hAxis: {title:hAxisTitle, titleTextStyle:{color:"white"}, gridlines:{color:"#808080"}, minValue: 0, baselineColor: "white", textStyle: {color: "white"}},
+          vAxis: {title:vAxisTitle, titleTextStyle:{color:"white"}, gridlines:{color:"#808080"}, minValue: 0, baselineColor: "white", textStyle: {color: "white"}},
+          legend: 'none',
+          backgroundColor: "#181818",
+          colors:['white'],
+          chartArea: {'width': '85%', 'height': '80%'},
+        };
+
+        var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+        google.visualization.events.addListener(chart, 'select', selectHandler);
+        
+        chart.draw(data, options);
+        
+        function selectHandler() {
+          var selectedItem = chart.getSelection()[0];
+            if (selectedItem) {
+              var team = data.getValue(selectedItem.row, 2);
+              document.getElementById("teamLookupTab").click();
+              window.scrollTo(0, 0);
+              document.getElementById("teamLookupTeam").value = team
+              createTeamLookupDataTable()()
+            }
+          }
+        }
+  }
+  
+  function createTeamList(){
+    var teams = getTeams()
+    var parsedData = getMatchData()
+    var keys =  getAllKeys()
+    var html = ""
+    for(var i = 0; i < teams.length; i++) {
+      html += '<p>' + teams[i] + ':</p><table class="table"><tr class="table"><th class="table">Match:</th>'
+      for(var j = 0; j < keys.length; j++) {
+        if(keys[j] != "match" && keys[j] != "team") {
+          html += '<th class="table">' + keys[j] + '</th>'
+        }
+      }
+      html += '</tr>'
+      for(var j = 0; j < parsedData.length; j++) {
+        var json = JSON.parse(parsedData[j])
+        if(json.team == teams[i]) {
+          html += '<tr class="table"><th class="table">'+ json.match + '</th>'
+          for(var k = 0; k < keys.length; k++) {
+            if(keys[k] != "match" && keys[k] != "team") {
+              html +='<th class="table">' + json[keys[k]] + '</th>'
+            }
+          }
+        }
+      }
+      html += '</tr></table>'
+      html += '<br>'
+    }
+    document.getElementById("teamListContent").innerHTML = html
+  }
+  
+  
+  
+  ////////// Event Based UI Management //////////
+  function goToMatchLookup(matchNum) {
+    document.getElementById("matchLookupTab").click();
+    window.scrollTo(0, 0);
+    document.getElementById("matchLookupMatch").value = matchNum
+    createMatchLookupDataTable()
+  }
+  
+  function positionChangeEvent() {
+    var scoutPosition = document.getElementById('position').value;
+    var matchStr = document.getElementById('matchNumber').value.replace(/\D/g,'');
+    var teamStr =  document.getElementById('teamNumber').value.replace(/\D/g,'');
+    document.getElementById('matchNumber').value = matchStr
+    document.getElementById('teamNumber').value = teamStr
+    if(matchStr == "") { document.getElementById('matchNumber').value = ""; return; }
+    if(scoutPosition == "7") { return }
+    
+    var scoutPositionIndex = parseInt(scoutPosition, 10)
+    var matchNum = 1
+    if(matchStr != "") {
+      matchNum = parseInt(matchStr, 10)
+      matchNum = Math.max(matchNum, 1)
+      matchNum = Math.min(matchNum, 500)
+    }
+    
+    var team = getMatchSchedule()[matchNum-1][scoutPosition]
+    document.getElementById('teamNumber').value = team;
+    document.getElementById('matchNumber').value = matchNum;
+  }
+  // Update teamnumber when match number is changed
+  function matchChangeEvent() {
+    var scoutPosition = document.getElementById('position').value;
+    var matchStr = document.getElementById('matchNumber').value.replace(/\D/g,'');
+    var teamStr =  document.getElementById('teamNumber').value.replace(/\D/g,'');
+    document.getElementById('matchNumber').value = matchStr
+    document.getElementById('teamNumber').value = teamStr
+    if(matchStr == "") { document.getElementById('matchNumber').value = ""; return; }
+    if(scoutPosition == "7") { return }
+    
+    var scoutPositionIndex = parseInt(scoutPosition, 10)
+    var matchNum = parseInt(matchStr, 10)
+    
+    var team = getMatchSchedule()[matchNum-1][scoutPosition]
+    document.getElementById('teamNumber').value = team;
+    document.getElementById('matchNumber').value = matchNum;
+  }
+  
+  // Widget mechnics
+  function plus(id) {
+    var value = parseInt(document.getElementById(id).value, 10);
+    value = isNaN(value) ? 0 : value;
+    value++;
+    document.getElementById(id).value = value;
+    document.getElementById("defaultOpen").click();
+  }
+  function minus(id) {
+    var value = parseInt(document.getElementById(id).value, 10);
+    value = isNaN(value) ? 0 : value;
+    value--;
+    document.getElementById(id).value = value;
+  }
+  function sliderDrag(id, id2) {
+    var value = parseInt(document.getElementById(id).value, 10);
+    value = isNaN(value) ? 0 : value;
+    value--;
+    document.getElementById(id2).value = value;
+  }
+  
+  ////////// Generating the WebPage HTML based on google sheet //////////
+  function createScoutingDataEntry() {
+    var autoData = getDataEntryConfigAuto()
+    var teleData = getDataEntryConfigTele()
+    var autoHTML = generateScoutingDataEntryHTML(autoData)
+    var teleHTML = generateScoutingDataEntryHTML(teleData)
+    document.getElementById("autoContent").innerHTML = autoHTML;;
+    document.getElementById("teleContent").innerHTML = teleHTML;;
+  }
+  function generateScoutingDataEntryHTML(data) {
+    var html = ""
+    for(var i = 0; i < data.length; i++) {
+      if(data[i][0] == plusMinusConfigType) {
+        html += getPlusMinusHTML(data[i][1], data[i][2])
+      } else if(data[i][0] == checkboxConfigType) {
+        html += getCheckBoxHTML(data[i][1], data[i][2])
+      } else if(data[i][0] == sliderConfigType) {
+        html += getSliderHTML(data[i][1], data[i][2], data[i][3])
+      } else if(data[i][0] == dropdownConfigType) {
+        html += getDropDownHTML(data[i][1], data[i][2], data[i][3])
+      } else if(data[i][0] == textConfigType) {
+        html += getTextBoxHTML(data[i][1], data[i][2])
+      }
+    }
+    return html
+  }
+  function getPlusMinusHTML(name, id) {
+    name += ": "
+    var apost = "'"
+    var line1 = "<p>" + name + '</p><button type="button" onclick="minus(' + apost + id + apost + ')" class="plusMinusButon">-</button>'
+    var line2 = '<input type="text" id="' + id + '" value="0" class="plusMinusInput">'
+    var line3 = '<button type="button" onclick="plus(' + apost + id + apost + ')" class="plusMinusButon">+</button><br>'
+    return line1 + line2 + line3;
+  }
+  // Gets the html needed for a check box
+  function getCheckBoxHTML(name, id) {
+    name += ": "
+    return '<br><label>' + name + '</label> <input class="checkbox" type="checkbox" id="' + id + '"><br>'
+  }
+  // Gets the html for a text box
+  function getTextBoxHTML(name, id) {
+    name += ": "
+    return '<p>' + name + '</p><textarea id="' + id + '" class="commentInput"></textarea><br>'
+  }
+  // Gets the html for a slider
+  function getSliderHTML(name, id, max) {
+    name += ": "
+    var id2 = id + "thisisunique"
+    var apost = "'"
+    var line1 = '<br><label>' + name + '</label><input type="range" min="1" max="' + max + '" value="0" class="sliderRange" onchange="sliderDrag(' + apost + id2 + apost + "," + apost + id + apost + ')" id="' + id2 + '">'
+    var line2 = '<input type="text" id="' + id + '" value="0" onchange="sliderDrag(' + apost + id + apost + "," + apost + id2 + apost + ')" class="sliderText"><br>'
+    return line1 + line2
+  }
+  // Gets the html for a dropdown
+  function getDropDownHTML(name, id, options) {
+    options = options.split(",")
+    name += ": "
+    var html = '<br><label>' + name + '</label><select name="position" id="' + id + '">'
+    // Add all the lines, note that the value of the select will be the indedx of the name in the options data
+    for(var i = 0; i < options.length; i++) {
+      html = html + '<option value="' + options[i] + '">' + options[i] + '</option>'
+    }
+    return html + '</select><br>'
+  }
+  
+  
+  function createMatchSchedule() {
+    var apost = "'"
+    // Get the match schedule from local storage
+    var matchSchedule = getMatchSchedule()
+    var hilightTeam = document.getElementById('highlighttTeamNumberMS').value;
+    // Create the HTML
+    var html = '<table class="table"><tr class="table"><td class="table">Match Number</td><td class="table">Red 1</td><td class="table">Red 2</td><td class="table">Red 3</td><td class="table">Blue 1</td><td class="table">Blue 2</td><td class="table">Blue 3</td></tr>'
+    for(var i = 0; i < matchSchedule.length; i++) {
+      html += '<tr class="table">'  // Add a new row
+      for(var j = 0; j < 7; j++) {
+        if(j == 0) {
+          html += '<td class="table" onclick="goToMatchLookup(' + apost + (i + 1) + apost +')">' + (i + 1) + '</td>' // Add the first collum of the row: the match number
+        } else {
+          var cellClass = "table"
+          if(matchSchedule[i][j-1] == hilightTeam) { cellClass = 'blueTable' }
+          html += '<td class="' + cellClass + '">' + matchSchedule[i][j-1] + '</td>'  // Add a team number
+        }
+      }
+      html += '</tr>' // Close the new row
+    }
+    html += '</table>' // Close the table
+    
+    // Add the HTML to the site
+    document.getElementById("matchSchedContent").innerHTML = html
+  }
+
+//  ////////// Google Sheet Integration //////////
+  function getData() {
+    google.script.run.withSuccessHandler(handleIncData).getDataFromSheet();
+  }
+  function handleIncData(incData) {
+    localStorage.setItem(matchScheduleStorageID, incData[0][0])
+    localStorage.setItem(customDataConfigStorageID, incData[1][0])
+    localStorage.setItem(dataEntryConfigAutoStorageID, incData[2][0])
+    localStorage.setItem(dataEntryConfigTeleStorageID, incData[3][0])
+    localStorage.setItem(teamLookupConfigStorageID, incData[4][0])
+
+    var matchData = []
+    for(var i = 5; i < incData.length; i++) { matchData.push(incData[i][0]) }
+    localStorage.setItem(matchDataStorageID, matchData.join(stringSeparator2))
+    
+    generatePage()
+  }
+  function getMatchSchedule() {
+    var rawData = localStorage.getItem(matchScheduleStorageID).split(stringSeparator2)
+    var matchSchedule = []
+    for(var i = 0; i < rawData.length; i++) {  matchSchedule.push(rawData[i].split(stringSeparator1)) }
+    return removeEmptyDataFrom2DArray(matchSchedule)
+  }
+  function getCustomDataConfig() {
+    var rawData = localStorage.getItem(customDataConfigStorageID).split(stringSeparator2)
+    var matchSchedule = []
+    for(var i = 0; i < rawData.length; i++) {  matchSchedule.push(rawData[i].split(stringSeparator1)) }
+    return removeEmptyDataFrom2DArray(matchSchedule)
+  }
+  function getDataEntryConfigAuto() { return getDataEntryConfig(dataEntryConfigAutoStorageID) }
+  function getDataEntryConfigTele() { return getDataEntryConfig(dataEntryConfigTeleStorageID) }
+  function getDataEntryConfig(key) {
+    if(key != dataEntryConfigAutoStorageID && key != dataEntryConfigTeleStorageID) { key = dataEntryConfigAutoStorageID }  // Make sure the key is valid
+    
+    var rawData = localStorage.getItem(key).split(stringSeparator2)
+    var config = []
+    for(var i = 0; i < rawData.length; i++) {  config.push(rawData[i].split(stringSeparator1)) }
+    return removeEmptyDataFrom2DArray(config)
+  }
+  function getMatchData() {
+    return localStorage.getItem(matchDataStorageID).split(stringSeparator2)
+  }
+  function getTeams() {
+    var parsedData = getMatchData()
+    var teams = []
+    for(var i = 0; i < parsedData.length; i++) { 
+      var json = JSON.parse(parsedData[i])
+      if(json.hasOwnProperty("team")) {
+        var team = json.team
+        if(!teams.includes(parseInt(team))) {
+          teams.push(parseInt(team))
+        }
+      }
+    }
+    var numericTeams = teams.sort(function(a, b) { return a - b; });
+    var sortedTeams = []
+    for(var i = 0; i < numericTeams.length; i++) { sortedTeams.push("" + numericTeams[i]) }
+    return sortedTeams
+  }
+  function getTeamLookupConfig() {
+    var rawData = localStorage.getItem(teamLookupConfigStorageID).split(stringSeparator2)
+    var teamLookupConfig = []
+    for(var i = 0; i < rawData.length; i++) {  teamLookupConfig.push(rawData[i].split(stringSeparator1)) }
+    return removeEmptyDataFrom2DArray(teamLookupConfig)
+  }
+  
+  ///// Functions for submiting
+  function submit() {
+    if(document.getElementById("matchNumber").value == "" || document.getElementById("teamNumber").value == "") { 
+      alert("no team number or match number")
+      return 
+    }
+    var ids = getIDsInDoc();
+    
+    // Create the JSON file
+    var json = {}
+    json["match"] = document.getElementById("matchNumber").value
+    json["team"] = document.getElementById("teamNumber").value
+    for(var i = 0; i < ids.length; i++) {
+      if(document.getElementById(ids[i]).className == "checkbox") {
+        json[ids[i]] = document.getElementById(ids[i]).checked
+        document.getElementById(ids[i]).checked = false
+      } else if(document.getElementById(ids[i]).className != "sliderRange") {
+        json[ids[i]] = document.getElementById(ids[i]).value
+        document.getElementById(ids[i]).value = 0
+      } else {
+        document.getElementById(ids[i]).value = 0
+      }
+    }
+    
+    // Create the list of items to submit
+    var matchData = JSON.stringify(json)
+    var dataToStore = []
+    if(localStorage.getItem(storedDataToSubmit) != null) { dataToStore = localStorage.getItem(storedDataToSubmit).split("<>") }
+    dataToStore.push(matchData)
+    
+    localStorage.setItem(storedDataToSubmit, dataToStore.join(stringSeparator2))
+    document.getElementById("matchNumber").value = parseInt(document.getElementById("matchNumber").value, 10) + 1
+    matchChangeEvent()
+    window.scrollTo(0, 0);
+    exportScoutingDataToSheets()
+  }
+  function exportScoutingDataToSheets() {
+    if(online()) {
+      google.script.run.withSuccessHandler(onSubmitSucess).submitData(localStorage.getItem(storedDataToSubmit).split(stringSeparator2))
+      updateOfflineSubmit()
+    } else {
+      updateOfflineSubmit()
+    }
+  }
+  function onSubmitSucess() {
+    localStorage.removeItem(storedDataToSubmit)
+    updateOfflineSubmit()
+  }
+  function getIDsInDoc() {
+    var idArr = [];
+    var autoChildren = document.getElementById("autoContent").children;
+    var teleChildren = document.getElementById("teleContent").children;
+    for (var i = 0; i < autoChildren.length; i++) { idArr.push(autoChildren[i].id); }
+    for (var i = 0; i < teleChildren.length; i++) { idArr.push(teleChildren[i].id); }
+    return idArr.filter(function (el) { return el != ""; });
+  }
+  function getAllKeys() {
+    var parsedData = getMatchData()
+    var keys = [];
+      for(var i = 0; i < parsedData.length; i++) {
+        for(var j in JSON.parse(parsedData[i])) {
+          if(!keys.includes(j)) {
+            keys.push(j);
+          }
+        }
+      }
+    return keys
+  }
+  
+  
+  ////////// Generic Functions //////////
+  function getOccurrence(array, value) {
+    var count = 0;
+    array.forEach((v) => (v === value && count++));
+    return count;
+  }
+  // Check if we are online and update the color of the sublit stored data button
+  function updateOfflineSubmit() {
+    online()
+    try {
+      var length = localStorage.getItem(storedDataToSubmit).split(stringSeparator2).length
+      document.getElementById("offlineSubmit").innerHTML = "Submit Stored Data (" + length + ")"
+    } catch(err) {
+      document.getElementById("offlineSubmit").innerHTML = "Submit Stored Data (0)"
+    }
+  }
+  function online() {
+    var online = navigator.onLine;
+    if(online) {
+      document.getElementById("offlineSubmit").style.background='#0F9D58'
+    } else {
+      document.getElementById("offlineSubmit").style.background='#DB4437'
+    }
+    return online
+  }
+  function removeEmptyDataFrom2DArray(array) {
+    var array = array.filter(function (el) { return el != null; });
+    for(var i = 0; i < array.length; i++) {
+      array[i] = array[i].filter(function (el) { return el != null; });
+      array[i] = array[i].filter(function (el) { return el != ""; });
+    }
+    array = array.filter(function (el) { return el != []; });
+    return array
+  }
+  
+  ////////// Tabs //////////
+  function openPage(pageName, elmnt, color) {
+    // Hide all elements with class="tabcontent" by default
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+
+    // Remove the background color of all tablinks/buttons
+    tablinks = document.getElementsByClassName("tablink");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].style.backgroundColor = "";
+    }
+
+    // Show the specific tab content
+    document.getElementById(pageName).style.display = "block";
+
+    // Add the specific color to the button used to open the tab content
+    elmnt.style.backgroundColor = color;
+    
+    if(pageName == "Tab4") {
+      if(document.getElementById("xAxisGraphSelector").innerHTML != "") {
+        updateGraph()
+      }
+    }
+  }
+  
+  document.getElementById("defaultOpen").click();
+</script>  

@@ -449,6 +449,11 @@
     for(var i = 0; i < motorTypes.length; i++) { html += '<option value="' + motorTypes[i] + '">' + motorTypes[i] + '</option>' }
     html += '<option value="Other">Other</option>'
     html += '</select><div id="pitScoutMotorDiv" style="display: inline"></div><br>'
+    // Number of motors select
+    html += '<label>Number Of Motors: </label><select name="motorNum" id="pitScoutMotorNum" onchange="pitScoutDriveTrainUpdate(' + apost + "pitScoutMotorNum" + apost + ')">'
+    for(var i = 0; i <= 12; i++) { html += '<option value="' + i + '">' + i + '</option>' }
+    html += '<option value="Other">Other</option>'
+    html += '</select><div id="pitScoutMotorNumDiv" style="display: inline"></div><br>'
     // Comments
     html += getTextBoxHTML("Comments", "pitScoutComments") + "<br><br><br>"
 
@@ -648,6 +653,8 @@
     if(document.getElementById("pitScoutWheels").value == "Other") { json["wheelsNum"] = document.getElementById("pitScoutWheelsOther").value }
     json["motorType"] = document.getElementById("pitScoutMotor").value
     if(document.getElementById("pitScoutMotor").value == "Other") { json["motorType"] = document.getElementById("pitScoutMotorOther").value }
+    json["motorNum"] = document.getElementById("pitScoutMotorNum").value
+    if(document.getElementById("pitScoutMotorNum").value == "Other") { json["motorNum"] = document.getElementById("pitScoutMotorNumOther").value }
     json["comments"] = document.getElementById("pitScoutComments").value
 
     // Clear the data
@@ -655,10 +662,12 @@
     document.getElementById("pitScoutDriveTrain").value = ""
     document.getElementById("pitScoutWheels").value = ""
     document.getElementById("pitScoutMotor").value = ""
+    document.getElementById("pitScoutMotorNum").value = ""
     document.getElementById("pitScoutComments").value = ""
     pitScoutDriveTrainUpdate("pitScoutDriveTrain")
     pitScoutDriveTrainUpdate("pitScoutWheels")
     pitScoutDriveTrainUpdate("pitScoutMotor")
+    pitScoutDriveTrainUpdate("pitScoutMotorNum")
 
     var matchData = JSON.stringify(json)
 

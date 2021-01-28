@@ -2,6 +2,8 @@
 // Sheet names
 var dataPulling = 'Data Pulling'
 var dataSheet = 'Data'
+var settings = 'Settings'
+var images = 'Images'
 
 var scouting = 'Scouting'
 var fakeLogs = 'FakeLogs'
@@ -10,10 +12,10 @@ var fakeLogs = 'FakeLogs'
 function onOpen(e) {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var ui = SpreadsheetApp.getUi();
-  ui.createMenu('TBA Import')
-  .addItem('Match Times', 'getTimes')
+  ui.createMenu('Scoutmaster5001')
   .addItem('Import Match Schedule', 'importSchedule')
-  .addItem('Test', 'submitData')
+  .addItem('Import Match Times', 'getTimes')
+  .addItem('Generate Image Links', 'getImageLinks')
   .addToUi();
 }
 

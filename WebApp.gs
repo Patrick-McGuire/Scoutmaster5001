@@ -7,12 +7,14 @@ function doGet(e) {
 
 function getDataFromSheet(){
   var sheet = SpreadsheetApp.getActiveSpreadsheet()
-  var logCount = getValue(sheet, dataPulling, 'A9')
+  var logCount = getValue(sheet, dataPulling, 'A10')
   return getValues(sheet, dataPulling, "B1", "B" + logCount)
 }
 
 function getImageLinks() {
-  var folderName = "TestPics"
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+  var folderName = getImgFolderName(spreadsheet)
+
   if(folderName == "") { return }
   var imgFiles = DriveApp.getFoldersByName(folderName).next().getFiles()
   var out = []
@@ -20,8 +22,9 @@ function getImageLinks() {
   while(imgFiles.hasNext()) {
     var file = imgFiles.next()
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
-    out.push(["https://drive.google.com/uc?export=view&id=" + file.getId(), file.getName().replace(/\D/g,'')])
+    out.push([file.getName().replace(/\D/g,''), "https://drive.google.com/uc?export=view&id=" + file.getId()])
   }
+  setValues(spreadsheet, images, "B3", "C" + (out.length + 2), out)
 }
 
 function submitData(data, sheetName) {
@@ -30,3 +33,7 @@ function submitData(data, sheetName) {
     sheet.appendRow([data[i]])
   }
 }
+
+function getImgFolderName(spreadsheet) {
+  return getValue(spreadsheet, settings, "D8")
+} 

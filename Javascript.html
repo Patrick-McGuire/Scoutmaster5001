@@ -9,6 +9,7 @@
   var teamLookupConfigStorageID = "Scoutmaster5001teamLookupConfigStorageID"
   var matchDataStorageID = "Scoutmaster5001matchDataStorageID"
   var pitScoutingStorageID = "Scoutmaster5001pitScoutingStorageID"
+  var imgLinksStorageID = "Scoutmaster5001imgLinksStorageID"
   var storedDataToSubmit = "Scoutmaster5001storedDataToSubmit"
   var storedPitDataToSubmit = "Scoutmaster5001storedPitDataToSubmit"
   var stringSeparator1 = "/\\"
@@ -20,6 +21,7 @@
   var checkboxConfigType = "Checkbox"
   var sliderConfigType = "Slider"
   var sliderIdUniqeAdder = "thisisunique"
+  var imgIDCounter = 0;
 
 
   // Setup
@@ -55,9 +57,8 @@
   
   ////////// Data Visuasation ////////// 
   function growImg(imgID) {
-    //<img src="https://drive.google.com/uc?export=view&id=1Pf2CxN_Y7emYaCd7vvq1BJCrmguT9ZbE" id="img1" class="teamImg" onclick="growImg('img1')">
     img = document.getElementById(imgID); 
-    if(img.style.width == "200px") {
+    if(img.style.width == "200px" || img.style.width == "") {
       img.style.width = "600px"; 
       img.style.height = "auto"; 
       img.style.transition = "width 0.5s ease"; 
@@ -173,7 +174,7 @@
     }
     
     htmlTable += '</table>'
-    return htmlTable
+    return getImgLinkHTML(getImgLinks(), team) + '<br><br>' + htmlTable
   }
   
   function getDatapoint(team, datapoint, isAv) {
@@ -222,10 +223,6 @@
       return sum / count
     }
     return [outList, matchesList]
-  }
-  
-  function hi() {
-    alert("Hi!")
   }
   
   function updateGraph() {
@@ -304,13 +301,30 @@
         }
   }
   
+  function getImgLinkHTML(data, team) {
+    var apost = "'"
+    for(var i = 0; i < data.length; i++) {
+      if(data[i][0] == team) {
+        var imgId = team + "TeamImgID" + imgIDCounter
+        imgIDCounter += 1
+        return '<img src="' + data[i][1] + '" id="' + imgId + '" class="teamImg" onclick="growImg(' + apost + imgId + apost + ')">'
+      }
+    }
+    return ""
+  }
+
   function createTeamList(){
     var teams = getTeams()
     var parsedData = getMatchData()
     var keys =  getAllKeys()
+    var imgLinks = getImgLinks()
+
     var html = ""
     for(var i = 0; i < teams.length; i++) {
-      html += '<p>' + teams[i] + ':</p><table class="table"><tr class="table"><th class="table">Match:</th>'
+      html += '<p>' + teams[i] + ':</p>'
+      html += getImgLinkHTML(imgLinks, teams[i])
+
+      html += '<br><br><table class="table"><tr class="table"><th class="table">Match:</th>'
       for(var j = 0; j < keys.length; j++) {
         if(keys[j] != "match" && keys[j] != "team") {
           html += '<th class="table">' + keys[j] + '</th>'
@@ -551,12 +565,19 @@
     localStorage.setItem(dataEntryConfigTeleStorageID, incData[3][0])
     localStorage.setItem(teamLookupConfigStorageID, incData[4][0])
     localStorage.setItem(pitScoutingStorageID, incData[5][0])
-
+    localStorage.setItem(imgLinksStorageID, incData[6][0])
+    
     var matchData = []
-    for(var i = 6; i < incData.length; i++) { matchData.push(incData[i][0]) }
+    for(var i = 7; i < incData.length; i++) { matchData.push(incData[i][0]) }
     localStorage.setItem(matchDataStorageID, matchData.join(stringSeparator2))
     
     generatePage()
+  }
+  function getImgLinks() {
+    var rawData = localStorage.getItem(imgLinksStorageID).split(stringSeparator2)
+    var imgLinks = []
+    for(var i = 0; i < rawData.length; i++) {  imgLinks.push(rawData[i].split(stringSeparator1)) }
+    return removeEmptyDataFrom2DArray(imgLinks)
   }
   function getPitScoutConfig() {
     var rawData = localStorage.getItem(pitScoutingStorageID).split(stringSeparator2)

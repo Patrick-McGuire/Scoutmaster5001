@@ -107,7 +107,7 @@ function importTBA(urlEnd){
 }
 
 function getEventKey(spreadsheet){
-  return "2019dar";
+  return getValue(spreadsheet, settings, "D6")
 }
 function getTBAKey(){
   return "ElyWdtB6HR7EiwdDXFmX2PDXQans0OMq83cdBcOhwri2TTXdMeYflYARvlbDxYe6";

@@ -14,8 +14,9 @@ function getDataFromSheet(){
 function getImageLinks() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
   var folderName = getImgFolderName(spreadsheet)
-
   if(folderName == "") { return }
+
+  clearContent(spreadsheet, images, "B3", "C128")
   var imgFiles = DriveApp.getFoldersByName(folderName).next().getFiles()
   var out = []
   // Interate though all the files in the folder

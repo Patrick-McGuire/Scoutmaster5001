@@ -7,19 +7,25 @@ function doGet(e) {
 
 function getDataFromSheet(){
   var sheet = SpreadsheetApp.getActiveSpreadsheet()
-  var logCount = getValue(sheet, dataPulling, 'A8')
+  var logCount = getValue(sheet, dataPulling, 'A9')
   return getValues(sheet, dataPulling, "B1", "B" + logCount)
 }
 
-function submitTinder(data) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("RobotTinder");
-  for(var i = 0; i < data.length; i++) {
-    sheet.appendRow([data[i]])
+function getImageLinks() {
+  var folderName = "TestPics"
+  if(folderName == "") { return }
+  var imgFiles = DriveApp.getFoldersByName(folderName).next().getFiles()
+  var out = []
+  // Interate though all the files in the folder
+  while(imgFiles.hasNext()) {
+    var file = imgFiles.next()
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
+    out.push(["https://drive.google.com/uc?export=view&id=" + file.getId(), file.getName().replace(/\D/g,'')])
   }
 }
 
-function submitData(data) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Data");
+function submitData(data, sheetName) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   for(var i = 0; i < data.length; i++) {
     sheet.appendRow([data[i]])
   }

@@ -8,7 +8,9 @@
   var dataEntryConfigTeleStorageID = "Scoutmaster5001dataEntryConfigTeleStorageID"
   var teamLookupConfigStorageID = "Scoutmaster5001teamLookupConfigStorageID"
   var matchDataStorageID = "Scoutmaster5001matchDataStorageID"
+  var pitScoutingStorageID = "Scoutmaster5001pitScoutingStorageID"
   var storedDataToSubmit = "Scoutmaster5001storedDataToSubmit"
+  var storedPitDataToSubmit = "Scoutmaster5001storedPitDataToSubmit"
   var stringSeparator1 = "/\\"
   var stringSeparator2 = "<>"
   var stringSeparator3 = "->"
@@ -35,6 +37,7 @@
     createGraphPage()
     createTeamLookup()
     createMatchLookup()
+    createPitScouting()
   }
   function setupEvents() {
     document.getElementById('matchNumber').addEventListener('input', matchChangeEvent);
@@ -51,6 +54,20 @@
   }
   
   ////////// Data Visuasation ////////// 
+  function growImg(imgID) {
+    //<img src="https://drive.google.com/uc?export=view&id=1Pf2CxN_Y7emYaCd7vvq1BJCrmguT9ZbE" id="img1" class="teamImg" onclick="growImg('img1')">
+    img = document.getElementById(imgID); 
+    if(img.style.width == "200px") {
+      img.style.width = "600px"; 
+      img.style.height = "auto"; 
+      img.style.transition = "width 0.5s ease"; 
+      return;
+    }
+    img.style.width = "200px"; 
+    img.style.height = "auto"; 
+    img.style.transition = "width 0.5s ease"; 
+  } 
+
   function createMatchLookup() {
     var matchSchedule = getMatchSchedule()
     
@@ -320,6 +337,13 @@
   
   
   ////////// Event Based UI Management //////////
+  function pitScoutDriveTrainUpdate(id) {
+    if(document.getElementById(id).value == "Other") {
+      document.getElementById(id + "Div").innerHTML = '<input type="text" id="'+ (id + "Other") + '" class="largeInput">'
+    } else {
+      document.getElementById(id + "Div").innerHTML = ''
+    }
+  }
   function goToMatchLookup(matchNum) {
     document.getElementById("matchLookupTab").click();
     window.scrollTo(0, 0);
@@ -388,6 +412,35 @@
   }
   
   ////////// Generating the WebPage HTML based on google sheet //////////
+  function createPitScouting() {
+    var configData = getPitScoutConfig()
+    var dtTypes = configData[0]
+    var motorTypes = configData[1]
+    var apost = "'"
+
+    // Team number input
+    var html = '<label>Team Number: </label><input type="text" id="pitScoutTeam" class="smallInput"><br><br><br>'
+    // Drive train type select
+    html += '<label>Drivetrain Type: </label><select name="Drive Train Type" id="pitScoutDriveTrain" onchange="pitScoutDriveTrainUpdate(' + apost + "pitScoutDriveTrain" + apost + ')">'
+    for(var i = 0; i < dtTypes.length; i++) { html += '<option value="' + dtTypes[i] + '">' + dtTypes[i] + '</option>' }
+    html += '<option value="Other">Other</option>'
+    html += '</select><div id="pitScoutDriveTrainDiv" style="display: inline"></div><br>'
+    // Number of wheels select
+    html += '<label>Number Of Wheels: </label><select name="wheels" id="pitScoutWheels" onchange="pitScoutDriveTrainUpdate(' + apost + "pitScoutWheels" + apost + ')">'
+    for(var i = 0; i <= 12; i++) { html += '<option value="' + i + '">' + i + '</option>' }
+    html += '<option value="Other">Other</option>'
+    html += '</select><div id="pitScoutWheelsDiv" style="display: inline"></div><br>'
+    // Motor type select
+    html += '<label>Motor Type: </label><select name="Motor Type" id="pitScoutMotor" onchange="pitScoutDriveTrainUpdate(' + apost + "pitScoutMotor" + apost + ')">'
+    for(var i = 0; i < motorTypes.length; i++) { html += '<option value="' + motorTypes[i] + '">' + motorTypes[i] + '</option>' }
+    html += '<option value="Other">Other</option>'
+    html += '</select><div id="pitScoutMotorDiv" style="display: inline"></div><br>'
+    // Comments
+    html += getTextBoxHTML("Comments", "pitScoutComments") + "<br><br><br>"
+
+    document.getElementById("pitScoutingContent").innerHTML = html
+  }
+
   function createScoutingDataEntry() {
     var autoData = getDataEntryConfigAuto()
     var teleData = getDataEntryConfigTele()
@@ -497,12 +550,17 @@
     localStorage.setItem(dataEntryConfigAutoStorageID, incData[2][0])
     localStorage.setItem(dataEntryConfigTeleStorageID, incData[3][0])
     localStorage.setItem(teamLookupConfigStorageID, incData[4][0])
+    localStorage.setItem(pitScoutingStorageID, incData[5][0])
 
     var matchData = []
-    for(var i = 5; i < incData.length; i++) { matchData.push(incData[i][0]) }
+    for(var i = 6; i < incData.length; i++) { matchData.push(incData[i][0]) }
     localStorage.setItem(matchDataStorageID, matchData.join(stringSeparator2))
     
     generatePage()
+  }
+  function getPitScoutConfig() {
+    var rawData = localStorage.getItem(pitScoutingStorageID).split(stringSeparator2)
+    return removeEmptyDataFrom2DArray([rawData[0].split(stringSeparator1), rawData[1].split(stringSeparator1)])
   }
   function getMatchSchedule() {
     var rawData = localStorage.getItem(matchScheduleStorageID).split(stringSeparator2)
@@ -554,6 +612,42 @@
   }
   
   ///// Functions for submiting
+  function submitPit() {
+    if(document.getElementById("pitScoutTeam").value == "") { 
+      alert("no team number or match number")
+      return 
+    }
+
+    // Create the JSON file
+    var json = {}
+    json["team"] = document.getElementById("pitScoutTeam").value
+    json["dtType"] = document.getElementById("pitScoutDriveTrain").value
+    if(document.getElementById("pitScoutDriveTrain").value == "Other") { json["dtType"] = document.getElementById("pitScoutDriveTrainOther").value }
+    json["wheelsNum"] = document.getElementById("pitScoutWheels").value
+    if(document.getElementById("pitScoutWheels").value == "Other") { json["wheelsNum"] = document.getElementById("pitScoutWheelsOther").value }
+    json["motorType"] = document.getElementById("pitScoutMotor").value
+    if(document.getElementById("pitScoutMotor").value == "Other") { json["motorType"] = document.getElementById("pitScoutMotorOther").value }
+    json["comments"] = document.getElementById("pitScoutComments").value
+
+    // Clear the data
+    document.getElementById("pitScoutTeam").value = ""
+    document.getElementById("pitScoutDriveTrain").value = ""
+    document.getElementById("pitScoutWheels").value = ""
+    document.getElementById("pitScoutMotor").value = ""
+    document.getElementById("pitScoutComments").value = ""
+    pitScoutDriveTrainUpdate("pitScoutDriveTrain")
+    pitScoutDriveTrainUpdate("pitScoutWheels")
+    pitScoutDriveTrainUpdate("pitScoutMotor")
+
+    var matchData = JSON.stringify(json)
+
+    var dataToStore = []
+    if(localStorage.getItem(storedPitDataToSubmit) != null) { dataToStore = localStorage.getItem(storedPitDataToSubmit).split("<>") }
+    dataToStore.push(matchData)
+    
+    localStorage.setItem(storedPitDataToSubmit, dataToStore.join(stringSeparator2))
+    exportPitScoutingDataToSheets()
+  }
   function submit() {
     if(document.getElementById("matchNumber").value == "" || document.getElementById("teamNumber").value == "") { 
       alert("no team number or match number")
@@ -597,11 +691,23 @@
   }
   function exportScoutingDataToSheets() {
     if(online()) {
-      google.script.run.withSuccessHandler(onSubmitSucess).submitData(localStorage.getItem(storedDataToSubmit).split(stringSeparator2))
+      google.script.run.withSuccessHandler(onSubmitSucess).submitData(localStorage.getItem(storedDataToSubmit).split(stringSeparator2), "Data")
       updateOfflineSubmit()
     } else {
       updateOfflineSubmit()
     }
+  }
+  function exportPitScoutingDataToSheets() {
+    if(online()) {
+      google.script.run.withSuccessHandler(onPitSubmitSucess).submitData(localStorage.getItem(storedPitDataToSubmit).split(stringSeparator2), "PitScout")
+      updateOfflineSubmit()
+    } else {
+      updateOfflineSubmit()
+    }
+  }
+  function onPitSubmitSucess() {
+    localStorage.removeItem(storedPitDataToSubmit)
+    updateOfflineSubmit()
   }
   function onSubmitSucess() {
     localStorage.removeItem(storedDataToSubmit)
@@ -630,6 +736,10 @@
   
   
   ////////// Generic Functions //////////
+  function idExists(id) {
+    if(document.getElementById("myElement") != null) { return true }
+    return false
+  }
   function removeItemAll(arr, value) {
     var i = 0;
     while (i < arr.length) {
@@ -655,13 +765,22 @@
     } catch(err) {
       document.getElementById("offlineSubmit").innerHTML = "Submit Stored Data (0)"
     }
+    try {
+      var length2 = localStorage.getItem(storedPitDataToSubmit).split(stringSeparator2).length
+      document.getElementById("offlinePitSubmit").innerHTML = "Submit Stored Data (" + length2 + ")"
+    } catch(err) {
+      document.getElementById("offlinePitSubmit").innerHTML = "Submit Stored Data (0)" 
+    }
   }
   function online() {
     var online = navigator.onLine;
+
     if(online) {
       document.getElementById("offlineSubmit").style.background='#0F9D58'
+      document.getElementById("offlinePitSubmit").style.background='#0F9D58'
     } else {
       document.getElementById("offlineSubmit").style.background='#DB4437'
+      document.getElementById("offlinePitSubmit").style.background='#DB4437'
     }
     return online
   }

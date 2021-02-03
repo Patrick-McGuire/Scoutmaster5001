@@ -3,6 +3,8 @@
 // Gets the start times of every match from the event specified in 'Big Brother', and puts them into the spreadsheet, so they can be made into twitch links
 function getTimes() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+  try {
+  setStatus(spreadsheet, "Importing Match Times")
   // Clear old Times
   ClearMatchTimes(spreadsheet);
   
@@ -29,14 +31,21 @@ function getTimes() {
   setValues(spreadsheet, matchSchedule, 'AL4', 'AL'+ endRow, match_numbers)
   setValues(spreadsheet, matchSchedule, 'AK4', 'AK'+ endRow, match_types)
   setValues(spreadsheet, matchSchedule, 'AJ4', 'AJ'+ endRow, match_time)
+  setStatus(spreadsheet, "Idle")
+
+  } catch(err) {
+    setStatus(spreadsheet, "Import MT Error: " + err)
+  }
 }
 
 // Imports the math schedule for the event specified in 'Big Brother' from TBA, and puts it into the sheet
 function importSchedule() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-  
+  try {
+  setStatus(spreadsheet, "Importing Match Schedule")
+
   //Clear old match data
-  ClearMatchSchedule(spreadsheet);
+  clearContent(spreadsheet, matchSchedule, "B2", "I152")
   
   // Get the event key from the spreadsheet
   var eventKey = getEventKey(spreadsheet);
@@ -82,6 +91,11 @@ function importSchedule() {
   
   setValues(spreadsheet, matchSchedule, 'C2', 'C' + endRow, matchNumber);
   setValues(spreadsheet, matchSchedule, 'B2', 'B' + endRow, matchType);
+
+  setStatus(spreadsheet, "Idle")
+  } catch(err) {
+    setStatus(spreadsheet, "Import MS Error: " + err)
+  }
 }
 
 // Clears the team's matches data
@@ -111,4 +125,7 @@ function getEventKey(spreadsheet){
 }
 function getTBAKey(){
   return "ElyWdtB6HR7EiwdDXFmX2PDXQans0OMq83cdBcOhwri2TTXdMeYflYARvlbDxYe6";
+}
+function setStatus(spreadsheet, status) {
+  setValue(spreadsheet, settings, "H6", status)
 }

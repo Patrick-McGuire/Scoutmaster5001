@@ -13,6 +13,8 @@ function getDataFromSheet(){
 
 function getImageLinks() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+  try {
+  setStatus(spreadsheet, "Getting img links")
   var folderName = getImgFolderName(spreadsheet)
   if(folderName == "") { return }
 
@@ -26,6 +28,11 @@ function getImageLinks() {
     out.push([file.getName().replace(/\D/g,''), "https://drive.google.com/uc?export=view&id=" + file.getId()])
   }
   setValues(spreadsheet, images, "B3", "C" + (out.length + 2), out)
+  setStatus(spreadsheet, "Idle")
+
+  } catch(err) {
+    setStatus(spreadsheet, "Import IMG Error: " + err)
+  }
 }
 
 function submitData(data, sheetName) {

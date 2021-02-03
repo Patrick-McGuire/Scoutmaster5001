@@ -8,7 +8,7 @@ function doGet(e) {
 function getDataFromSheet(){
   var sheet = SpreadsheetApp.getActiveSpreadsheet()
   var logCount = getValue(sheet, dataPulling, 'A10')
-  return getValues(sheet, dataPulling, "B1", "B" + logCount)
+  return getValues(sheet, dataPulling, "B1", "C" + logCount)
 }
 
 function getImageLinks() {

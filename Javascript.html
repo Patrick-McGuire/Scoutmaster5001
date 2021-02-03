@@ -8,6 +8,7 @@
   var dataEntryConfigTeleStorageID = "Scoutmaster5001dataEntryConfigTeleStorageID"
   var teamLookupConfigStorageID = "Scoutmaster5001teamLookupConfigStorageID"
   var matchDataStorageID = "Scoutmaster5001matchDataStorageID"
+  var pitScoutDataStorageID = "Scoutmaster5001pitScoutDataStorageID"
   var pitScoutingStorageID = "Scoutmaster5001pitScoutingStorageID"
   var imgLinksStorageID = "Scoutmaster5001imgLinksStorageID"
   var storedDataToSubmit = "Scoutmaster5001storedDataToSubmit"
@@ -29,6 +30,7 @@
   setupEvents()
   updateOfflineSubmit()
   addUnloadMessage()
+
 
 
 
@@ -175,7 +177,7 @@
     }
     
     htmlTable += '</table>'
-    return getImgLinkHTML(getImgLinks(), team) + '<br><br>' + htmlTable
+    return getImgLinkHTML(getImgLinks(), team) + '<br><br>' + getPitScoutHTMLTable(team, getPitData()) + htmlTable
   }
   
   function getDatapoint(team, datapoint, isAv) {
@@ -314,21 +316,24 @@
     return ""
   }
 
-  function createTeamList(){
+  function createTeamList() {
     var teams = getTeams()
     var parsedData = getMatchData()
     var keys =  getAllKeys()
     var imgLinks = getImgLinks()
+    var pitData = getPitData()
 
     var html = ""
     for(var i = 0; i < teams.length; i++) {
       html += '<p>' + teams[i] + ':</p>'
       html += getImgLinkHTML(imgLinks, teams[i])
 
-      html += '<br><br><table class="table"><tr class="table"><th class="table">Match:</th>'
+      html += '<br><br><div class="teamListDiv">' + getPitScoutHTMLTable(teams[i], pitData)
+
+      html += '<br><table class="table" id="teamListID"><tr class="tableAA"><th class="tableAA">Match:</th>'
       for(var j = 0; j < keys.length; j++) {
         if(keys[j] != "match" && keys[j] != "team") {
-          html += '<th class="table">' + keys[j] + '</th>'
+          html += '<th class="tableAA">' + keys[j] + '</th>'
         }
       }
       html += '</tr>'
@@ -343,18 +348,36 @@
           }
         }
       }
-      html += '</tr></table>'
-      html += '<br>'
+      html += '</tr></table><br></div><br>'
     }
     document.getElementById("teamListContent").innerHTML = html
   }
-  
-  
+  function getPitScoutHTMLTable(team, pitData) {
+    var html = '<table class="table"><tr class="tableAA"><th class="tableAA">Drive Train</th><th class="tableAA">Wheels #:</th>'
+    html += '<th tableAA="table">Motor Type:</th><th tableAA="tableAA">Motor #:</th><th class="tableAA">Comments:</th></tr><tr class="table">'
+    html += '<td class="table">' + getPitDatapoint(pitData, team, "dtType") + '</td>'
+    html += '<td class="table">' + getPitDatapoint(pitData, team, "wheelsNum") + '</td>'
+    html += '<td class="table">' + getPitDatapoint(pitData, team, "motorType") + '</td>'
+    html += '<td class="table">' + getPitDatapoint(pitData, team, "motorNum") + '</td>'
+    html += '<td class="table">' + getPitDatapoint(pitData, team, "comments") + '</td></tr></table>'
+    return html
+  }
+  function getPitDatapoint(data, team, datapoint) {
+    for(var i = 0; i < data.length; i++) {
+      var json = JSON.parse(data[i])
+      if(json["team"] == team) {
+        return json[datapoint]
+      }
+    }
+    return 'error'
+  }
   
   ////////// Event Based UI Management //////////
   function pitScoutDriveTrainUpdate(id) {
     if(document.getElementById(id).value == "Other") {
       document.getElementById(id + "Div").innerHTML = '<input type="text" id="'+ (id + "Other") + '" class="largeInput">'
+    } else if(id == "pitScoutTeam"){
+      document.getElementById(id + "Div").innerHTML = '<br><br>' + getImgLinkHTML(getImgLinks(), document.getElementById(id).value)
     } else {
       document.getElementById(id + "Div").innerHTML = ''
     }
@@ -429,12 +452,17 @@
   ////////// Generating the WebPage HTML based on google sheet //////////
   function createPitScouting() {
     var configData = getPitScoutConfig()
+    var teams = getTeams()
     var dtTypes = configData[0]
     var motorTypes = configData[1]
     var apost = "'"
 
     // Team number input
-    var html = '<label>Team Number: </label><input type="text" id="pitScoutTeam" class="smallInput"><br><br><br>'
+    // var html = '<label>Team Number: </label><input type="text" id="pitScoutTeam" class="smallInput"><br><br><br>'
+    var html = '<label for="teamLookupTeam">Team:  </label><select name="Team" id="pitScoutTeam" onchange="pitScoutDriveTrainUpdate(' + apost + "pitScoutTeam" + apost + ')" onblur="pitScoutDriveTrainUpdate(' + apost + "pitScoutTeam" + apost + ')">'
+    html += '<option value="Other">Other</option>'
+    for(var i = 0; i < teams.length; i++) { html += '<option value="' + teams[i] + '">' + teams[i] + '</option>' }
+    html += '</select><div id="pitScoutTeamDiv" style="display: inline"></div><br><br>'
     // Drive train type select
     html += '<label>Drivetrain Type: </label><select name="Drive Train Type" id="pitScoutDriveTrain" onchange="pitScoutDriveTrainUpdate(' + apost + "pitScoutDriveTrain" + apost + ')">'
     for(var i = 0; i < dtTypes.length; i++) { html += '<option value="' + dtTypes[i] + '">' + dtTypes[i] + '</option>' }
@@ -459,6 +487,7 @@
     html += getTextBoxHTML("Comments", "pitScoutComments") + "<br><br><br>"
 
     document.getElementById("pitScoutingContent").innerHTML = html
+    pitScoutDriveTrainUpdate("pitScoutTeam")
   }
 
   function createScoutingDataEntry() {
@@ -486,11 +515,12 @@
     }
     return html
   }
+  
   function getPlusMinusHTML(name, id) {
     name += ": "
     var apost = "'"
     var line1 = "<p>" + name + '</p><button type="button" onclick="minus(' + apost + id + apost + ')" class="plusMinusButon">-</button>'
-    var line2 = '<input type="text" id="' + id + '" value="0" class="plusMinusInput">'
+    var line2 = '<input type="number" id="' + id + '" value="0" class="plusMinusInput">'
     var line3 = '<button type="button" onclick="plus(' + apost + id + apost + ')" class="plusMinusButon">+</button><br>'
     return line1 + line2 + line3;
   }
@@ -576,7 +606,14 @@
     var matchData = []
     for(var i = 7; i < incData.length; i++) { matchData.push(incData[i][0]) }
     localStorage.setItem(matchDataStorageID, matchData.join(stringSeparator2))
-    
+
+    var pitData = []
+    for(var i = 0; i < incData.length; i++) { 
+      if(incData[i][1] == "") { break; }
+      pitData.push(incData[i][1]) 
+    } 
+    localStorage.setItem(pitScoutDataStorageID, pitData.join(stringSeparator2))
+
     generatePage()
   }
   function getImgLinks() {
@@ -614,6 +651,9 @@
   function getMatchData() {
     return localStorage.getItem(matchDataStorageID).split(stringSeparator2)
   }
+  function getPitData() {
+    return localStorage.getItem(pitScoutDataStorageID).split(stringSeparator2)
+  }
   function getTeams() {
     var parsedData = getMatchData()
     var teams = []
@@ -648,6 +688,7 @@
     // Create the JSON file
     var json = {}
     json["team"] = document.getElementById("pitScoutTeam").value
+    if(document.getElementById("pitScoutTeam").value == "Other") { json["team"] = document.getElementById("pitScoutTeamOther").value }
     json["dtType"] = document.getElementById("pitScoutDriveTrain").value
     if(document.getElementById("pitScoutDriveTrain").value == "Other") { json["dtType"] = document.getElementById("pitScoutDriveTrainOther").value }
     json["wheelsNum"] = document.getElementById("pitScoutWheels").value
@@ -659,7 +700,7 @@
     json["comments"] = document.getElementById("pitScoutComments").value
 
     // Clear the data
-    document.getElementById("pitScoutTeam").value = ""
+    document.getElementById("pitScoutTeam").value = "Other"
     document.getElementById("pitScoutDriveTrain").value = ""
     document.getElementById("pitScoutWheels").value = ""
     document.getElementById("pitScoutMotor").value = ""
@@ -669,6 +710,7 @@
     pitScoutDriveTrainUpdate("pitScoutWheels")
     pitScoutDriveTrainUpdate("pitScoutMotor")
     pitScoutDriveTrainUpdate("pitScoutMotorNum")
+    pitScoutDriveTrainUpdate("pitScoutTeam")
 
     var matchData = JSON.stringify(json)
 

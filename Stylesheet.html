@@ -1,5 +1,4 @@
 <style>
-/*https://www.w3schools.com/colors/colors_shades.asp*/
 body, html {
   margin: 0;
   font-family: Arial;
@@ -7,20 +6,10 @@ body, html {
   touch-action: manipulation;
 }
 
-.teamListDiv {
-  overflow-x: scroll;
-  width: 100%
-}
-
-.teamImg {
-  width: 200px;
-}
-
 .column {
   float: left;
-  width: 50%;
   display: table-cell;
-  overflow-x: scroll;
+  /* overflow-x: scroll; */
 }
 
 .row:after {
@@ -29,37 +18,26 @@ body, html {
   clear: both;
 }
 
-.teamLookupTable {
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
-  width: 45%;
+.left {
+  width: 65%;
 }
 
-.tableAA {
-  font-size: 18px;
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
-  color: white;
+.center {
+  width: 5%;
 }
 
-.blueTable {
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
-  background-color: blue;
+.right {
+  width: 30%;
 }
 
-.table {
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
+.dialogButton {
+  color: #C0C0C0;
+  background-color: #282828;
+  border: 2px solid black;
+  width: 48%;
+  height: 50px;
 }
+
 .genericButton {
   background-color: #282828;
   color: white;
@@ -82,6 +60,16 @@ body, html {
 .largeInput {
   width: 120px;
 }
+
+.largeInput2 {
+  width: 70%;
+}
+
+.timerDisplayLabel {
+  padding-right: 10px;
+  padding-left: 20px;
+}
+
 .plusMinusInput {
   border: 2px solid black;
   border-radius: 4px;
@@ -152,4 +140,19 @@ body, html {
 #Tab6 {background-color: #282828;}
 #Tab7 {background-color: #282828;}
 
+.tablink {
+  background-color: #555;
+  color: #C0C0C0;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  width: 20%;
+}
+
+.tablink:hover {
+  background-color: #666;
+}
 </style>

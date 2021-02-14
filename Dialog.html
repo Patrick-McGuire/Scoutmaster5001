@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+  </head>
+  <body>
+      <button class="tablink" onclick="openPage('Tab1', this, '#666')" id="defaultOpen">Scouting Entry</button>
+      <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
+      <button class="tablink" onclick="openPage('Tab4', this, '#666')" id="graphTabButton">Graph</button>
+      <button class="tablink" onclick="openPage('Tab5', this, '#666')" id="teamLookupTabButton">Team Lookup</button>
+      <button class="tablink" onclick="openPage('Tab6', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
+     
+      <div id="Tab1" class="tabcontent">
+        <div class="row">
+          <div class="column left">
+            <h3>Auto</h3>
+            <div id="autoContent"></div>
+            <br><hr><br><h3>Tele</h3><br>
+            <div id="teleContent"></div>
+          </div>
+          <div class="column center">
+            <p></p>
+          </div>
+          <div class="column right">
+            <button id="newWidgetButton" class="dialogButton" onclick="newWidget()">New</button>
+            <button id="deleteWidgetButton" class="dialogButton">Delete</button><hr>
+            <label>Name:&nbsp;&nbsp;</label><input type="text" id="activeName" class="largeInput2" onchange="sidebarUpdated()"><br><br>
+            <label>Auto or Tele:&nbsp;&nbsp;</label><select id="AORT" onchange="sidebarUpdated()">
+              <option value="Auto">Auto</option>
+              <option value="Tele">Tele</option>
+            </select><br><br>
+            <label>Type:&nbsp;&nbsp;</label><select name="position" id="Type" onchange="sidebarUpdated()">
+              <option value="PM">Plus/Minus</option>
+              <option value="CB">Checkbox</option>
+              <option value="TE">Text Entry</option>
+              <option value="SL">Slider</option>
+              <option value="DD">Drop Down</option>
+              <option value="TM">Timer</option>
+            </select>
+            <div id="CustomWidgetSettingsDiv"><p></p></div>
+          </div>
+        </div>
+      </div>    
+
+      <div id="Tab2" class="tabcontent">
+        
+      </div>
+      <div id="Tab3" class="tabcontent">
+        
+      </div>
+      <div id="Tab4" class="tabcontent">
+        
+      </div>
+      <div id="Tab5" class="tabcontent">
+        
+      </div>
+
+      <?!= HtmlService.createHtmlOutputFromFile('WidgetsJavascript').getContent(); ?>
+      <script>
+        var data = []
+        var created = 0
+        var activeID = ""
+
+        function newWidget() {
+          var blankData = {
+            id: "ENTRYID" + created,
+            name: "New",
+            period: "Auto",
+            type: "PM",
+          }
+          activeID = blankData.id
+          data.push(blankData)
+          created += 1
+
+          updateSidebar()
+          drawView()
+        }
+        function updateSidebar() {
+          for(var i = 0; i < data.length; i++) {
+            var json = data[i]
+            if(json.id == activeID) {
+              document.getElementById("activeName").value = json.name
+              document.getElementById("AORT").value = json.period
+              document.getElementById("Type").value = json.type
+              if(json.type == "SL") {
+                var div = document.getElementById('CustomWidgetSettingsDiv')
+                if(!document.getElementById("MinSliderConfig")) {
+                  div.innerHTML = ""
+                  var maxLabel = document.createElement("LABLE")
+                  maxLabel.innerHTML = "Max:&nbsp;&nbsp;"
+                  var minLabel = document.createElement("LABLE")
+                  minLabel.innerHTML = "Min:&nbsp;&nbsp;"
+                  var max = document.createElement("INPUT")
+                  max.id = "MaxSliderConfig"
+                  max.className = "largeInput2"
+                  max.onchange = sidebarUpdated
+                  max.value = "100"
+                  var min = document.createElement("INPUT")
+                  min.id = "MinSliderConfig"
+                  min.value = "0"
+                  min.className = "largeInput2"
+                  min.onchange = sidebarUpdated
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(maxLabel)
+                  div.appendChild(max)
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(minLabel)
+                  div.appendChild(min)
+                }
+              } else if(json.id == "DD") {
+                var div = document.getElementById('CustomWidgetSettingsDiv')
+                if(!document.getElementById("MinSliderConfig")) {
+                  
+                }
+              } else {
+                var div = document.getElementById('CustomWidgetSettingsDiv')
+                div.innerHTML = ""
+              }
+            }
+          }
+        }
+        function sidebarUpdated() {
+          for(var i = 0; i < data.length; i++) {
+            var newJSON = {}
+            var json = data[i]
+            if(json.id == activeID) {
+              json.name = document.getElementById("activeName").value
+              json.period = document.getElementById("AORT").value
+              json.type = document.getElementById("Type").value
+              if(json.type == "SL") {
+                try {
+                  json.min = document.getElementById("MinSliderConfig").value
+                  json.max = document.getElementById("MaxSliderConfig").value
+                } catch(err) {}
+              }
+            }
+          }
+          updateSidebar()
+          drawView()
+        }
+        function drawView() {
+          document.getElementById('autoContent').innerHTML = ""
+          for(var i = 0; i < data.length; i++) {
+            var json = data[i]
+            if(json.type == "PM") {
+              var ele = getNewPlusMinus(json.name, json.id)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById('autoContent').appendChild(ele);
+            } else if(json.type == "CB") {
+              var ele = getNewCheckbox(json.name, json.id)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById('autoContent').appendChild(ele);
+            } else if(json.type == "TE") {
+              var ele = getNewTextBox(json.name, json.id)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById('autoContent').appendChild(ele);
+            } else if(json.type == "TM") {
+              var ele = getNewTimmer(json.name, json.id, json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById('autoContent').appendChild(ele);
+            } else if(json.type == "DD") {
+              var ele = getNewDropDown(json.name, json.id, json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById('autoContent').appendChild(ele);
+            } else if(json.type == "SL") {
+              var ele = getNewSlider(json.name, json.id, json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById('autoContent').appendChild(ele);
+            }
+          }
+        }
+        function setActiveID(id) {
+          activeID = id
+          updateSidebar();
+        }
+
+
+        function openPage(pageName, elmnt, color) {
+          // Hide all elements with class="tabcontent" by default
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+          }
+
+          // Remove the background color of all tablinks/buttons
+          tablinks = document.getElementsByClassName("tablink");
+          for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.backgroundColor = "";
+          }
+
+          // Show the specific tab content
+          document.getElementById(pageName).style.display = "block";
+
+          // Add the specific color to the button used to open the tab content
+          elmnt.style.backgroundColor = color;
+        }
+        document.getElementById("defaultOpen").click();
+      </script>
+  </body>
+</html>

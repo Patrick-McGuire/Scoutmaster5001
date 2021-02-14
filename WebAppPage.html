@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+  </head>
+  <body>
+      <button class="tablink" onclick="openPage('Tab1', this, '#666')" id="defaultOpen">Scouting Entry</button>
+      <button class="tablink" onclick="openPage('Tab2', this, '#666')" id="matchScheduleTabButton">Match Scheule</button>
+      <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
+      <button class="tablink" onclick="openPage('Tab4', this, '#666')" id="teamListTabButton">Team List</button>
+      <button class="tablink" onclick="openPage('Tab5', this, '#666')" id="graphTabButton">Graph</button>
+      <button class="tablink" onclick="openPage('Tab6', this, '#666')" id="teamLookupTabButton">Team Lookup</button>
+      <button class="tablink" onclick="openPage('Tab7', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
+     
+      <div id="Tab1" class="tabcontent">
+        <div id="TeleContent">
+        </div>
+      </div>    
+
+      <div id="Tab2" class="tabcontent">
+        
+      </div>
+      <div id="Tab3" class="tabcontent">
+        
+      </div>
+      <div id="Tab4" class="tabcontent">
+        
+      </div>
+      <div id="Tab5" class="tabcontent">
+        
+      </div>
+      <div id="Tab6" class="tabcontent">
+        
+      </div>
+      <div id="Tab7" class="tabcontent">
+        
+      </div>
+
+      <?!= HtmlService.createHtmlOutputFromFile('WidgetsJavascript').getContent(); ?>
+      <?!= HtmlService.createHtmlOutputFromFile('WebAppScripts').getContent(); ?>
+  </body>
+</html>

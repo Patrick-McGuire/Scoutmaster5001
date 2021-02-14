@@ -1,0 +1,64 @@
+<script>
+
+
+
+
+var sliderData = {
+  max: '60',
+  min: '-5',
+  type: "numeric",
+}
+
+var sliderData1 = {
+  type: "numeric",
+}
+
+var dropDownData = {
+  options: ['thing->1', 'adsf->2'],
+  type: "numeric"
+}
+
+document.getElementById('Tab1').appendChild(getNewPlusMinus("Name Here", "ffd"));
+document.getElementById('Tab1').appendChild(getNewPlusMinus("Name Here2", "ffd2"));
+document.getElementById('Tab1').appendChild(getNewCheckbox("Name Here3", "fffd2"));
+document.getElementById('Tab1').appendChild(getNewCheckbox("Name Here4", "ffffd2"));
+document.getElementById('Tab1').appendChild(getNewTextBox("Name Here5", "fffffd2"));
+document.getElementById('Tab1').appendChild(getNewTextBox("Name Here6", "gfffffd2"));
+document.getElementById('Tab1').appendChild(getNewSlider("Name Here7", "1", sliderData));
+document.getElementById('Tab1').appendChild(getNewSlider("Name Here17", "11", sliderData1));
+document.getElementById('Tab1').appendChild(getNewDropDown("Name Here117", "111", dropDownData));
+document.getElementById('Tab1').appendChild(getNewDropDown("Name Here1171", "1111", dropDownData));
+document.getElementById('Tab1').appendChild(getNewTimmer("Name Here11711", "11111"));
+document.getElementById('Tab1').appendChild(getNewTimmer("Name Hefre11711", "11f111"));
+
+
+function openPage(pageName, elmnt, color) {
+    // Hide all elements with class="tabcontent" by default
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+
+    // Remove the background color of all tablinks/buttons
+    tablinks = document.getElementsByClassName("tablink");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].style.backgroundColor = "";
+    }
+
+    // Show the specific tab content
+    document.getElementById(pageName).style.display = "block";
+
+    // Add the specific color to the button used to open the tab content
+    elmnt.style.backgroundColor = color;
+    
+    if(pageName == "Tab5") {
+      if(document.getElementById("xAxisGraphSelector").innerHTML != "") {
+        updateGraph()
+      }
+    }
+  }
+  
+  document.getElementById("defaultOpen").click();
+
+</script>

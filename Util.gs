@@ -37,24 +37,29 @@ function openSpreadsheet(ssID) {
 
 // Clears content of a range
 function clearContent(spreadsheet, sheet, startCell, endCell) {
+  if(spreadsheet === null) { spreadsheet = SpreadsheetApp.getActiveSpreadsheet() }
   spreadsheet.getRange(getRangeString(sheet, startCell, endCell)).clearContent();
 }
 
 // Returns the values of a range of cells in the form of a array
 function getValues(spreadsheet, sheet, startCell, endCell) {
+  if(spreadsheet === null) { spreadsheet = SpreadsheetApp.getActiveSpreadsheet() }
   return spreadsheet.getRange(getRangeString(sheet, startCell, endCell)).getValues();
 }
 // Returns the value of a single cell
 function getValue(spreadsheet, sheet, startCell) {
+  if(spreadsheet === null) { spreadsheet = SpreadsheetApp.getActiveSpreadsheet() }
   return spreadsheet.getRange(getRangeString(sheet, startCell, "")).getValue();
 }
 
 // Sets the value of a group of cells
 function setValues(spreadsheet, sheet, startCell, endCell, values) {
+  if(spreadsheet === null) { spreadsheet = SpreadsheetApp.getActiveSpreadsheet() }
   spreadsheet.getRange(getRangeString(sheet, startCell, endCell)).setValues(values);
 }
 // Sets the value of a single cells
 function setValue(spreadsheet, sheet, startCell, value) {
+  if(spreadsheet === null) { spreadsheet = SpreadsheetApp.getActiveSpreadsheet() }
   spreadsheet.getRange(getRangeString(sheet, startCell, "")).setValue(value);
 }
 

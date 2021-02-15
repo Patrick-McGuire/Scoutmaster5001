@@ -2,8 +2,10 @@
   var dataPickupIDAdder = "dataPickupIDAdder"
   var timerCount = 0
 
-  //// Functions to get new widgets ////
-  function getNewPlusMinus(name, id) {
+//// Functions to get new widgets ////
+function getNewPlusMinus(options) {
+  var name = options.name
+  var id = options.id
   var div = document.createElement("DIV");
   div.id = id
   var p = document.createElement("P")
@@ -27,7 +29,9 @@
   div.appendChild(b2);
   return div
 }
-function getNewCheckbox(name, id) {
+function getNewCheckbox(options) {
+  var name = options.name
+  var id = options.id
   var div = document.createElement("DIV")
   div.id = id
   var label = document.createElement("LABEL")
@@ -40,7 +44,9 @@ function getNewCheckbox(name, id) {
   div.appendChild(input)
   return div
 }
-function getNewTextBox(name, id) {
+function getNewTextBox(options) {
+  var name = options.name
+  var id = options.id
   var div = document.createElement("DIV")
   div.id = id
   var p = document.createElement("P")
@@ -52,11 +58,19 @@ function getNewTextBox(name, id) {
   div.appendChild(input)
   return div
 }
-function getNewSlider(name, id, options) {
+function getNewSlider(options) {
+  var name = options.name
+  var id = options.id
   var min = 1
   var max = 101
+  var start = 0
   if(options.hasOwnProperty("min")) { min = parseInt(options.min) + 1 }
   if(options.hasOwnProperty("max")) { max = parseInt(options.max) + 1 }
+  if(options.hasOwnProperty("start")) { 
+    start = parseInt(options.start) 
+  } else { 
+    start = min - 1 
+  }
   var div = document.createElement("DIV")
   div.id = id
   var label = document.createElement("LABLE")
@@ -68,11 +82,11 @@ function getNewSlider(name, id, options) {
   slider.max = max
   slider.id = id + "SliderUNIQUE"
   slider.oninput = function() { sliderDrag(id + "SliderUNIQUE", id + dataPickupIDAdder) }
-  slider.value = min - 1
+  slider.value = start
   var displayInput = document.createElement("INPUT")
   displayInput.type = "number"
   displayInput.id = id + dataPickupIDAdder
-  displayInput.value = min - 1
+  displayInput.value = start
   displayInput.className = "sliderText"
   displayInput.onchange = function() { sliderDrag(id + dataPickupIDAdder, id + "SliderUNIQUE") }
   div.appendChild(document.createElement("BR"))
@@ -81,7 +95,9 @@ function getNewSlider(name, id, options) {
   div.appendChild(displayInput)
   return div
 }
-function getNewDropDown(name, id, options) {
+function getNewDropDown(options) {
+  var name = options.name
+  var id = options.id
   var data = ['1', '2']
   if(options.hasOwnProperty("options")) { data = options.options}
   var div = document.createElement("DIV")
@@ -109,9 +125,12 @@ function getNewDropDown(name, id, options) {
   div.appendChild(select)
   return div
 }
-function getNewTimmer(name, id) {
+function getNewTimmer(options) {
+  var name = options.name
+  var id = options.id
   var div = document.createElement("DIV")
   div.id = id
+  div.className = "timmerDiv"
   var lable = document.createElement("LABLE")
   lable.innerHTML = name + ":&nbsp;"
   var button = document.createElement("BUTTON")

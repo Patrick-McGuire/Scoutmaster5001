@@ -12,7 +12,7 @@
      
       <div id="Tab1" class="tabcontent">
         <div class="row">
-          <div class="column left">
+          <div id="Tab1Colum" class="column left">
             <h3>Auto</h3>
             <div id="autoContent"></div>
             <br><hr><br><h3>Tele</h3><br>
@@ -22,8 +22,12 @@
             <p></p>
           </div>
           <div class="column right">
+            <button class="dialogButton" onclick="saveDataEntryConfig()">Save</button>
+            <button class="dialogButton" onclick="clearAll()">Clear All</button>
+            <button id="moveUP" class="dialogButton" onclick="updateListOrder(false)">Move Up</button>
+            <button id="moveDown" class="dialogButton" onclick="updateListOrder(true)">Move Down</button>
             <button id="newWidgetButton" class="dialogButton" onclick="newWidget()">New</button>
-            <button id="deleteWidgetButton" class="dialogButton">Delete</button><hr>
+            <button id="deleteWidgetButton" class="dialogButton" onclick="deleteWiget()">Delete</button><hr>
             <label>Name:&nbsp;&nbsp;</label><input type="text" id="activeName" class="largeInput2" onchange="sidebarUpdated()"><br><br>
             <label>Auto or Tele:&nbsp;&nbsp;</label><select id="AORT" onchange="sidebarUpdated()">
               <option value="Auto">Auto</option>
@@ -60,13 +64,123 @@
         var data = []
         var created = 0
         var activeID = ""
+        var lastactiveID = ""
+        document.getElementById("Tab1Colum").style.minHeight = "" + (screen.height/2) + "px"
+
+        load()
+        function load() {
+          google.script.run.withSuccessHandler(function(dataIn) {
+            data = []
+            for(var i = 0; i < dataIn[0].length; i++) {
+              data.push(JSON.parse(dataIn[0][i]))
+              if(parseInt((data[i].id).replace("ENTRYID", "")) >= created) {
+                created += 1
+              }
+            }
+            drawView()
+          }).getConfigData()
+        }
+
+        function saveDataEntryConfig() {
+          var saveData = []
+          for(var i = 0; i < data.length; i++) { saveData.push([JSON.stringify(data[i])] ) }
+          google.script.run.withSuccessHandler(function() {
+            google.script.run.setValues(null, "Config", "A3", "A" + (saveData.length + 2), saveData)
+          }).clearContent(null, "Config", "A3", "A")
+        }
+
+        function deleteWiget() {
+          for(var i = 0; i < data.length; i++) {
+            if(data[i].id == activeID) {
+              data.splice(i, 1)
+            }
+            drawView()
+          }
+        }
+        function clearAll() {
+          if(confirm("Are you sure?")) {
+            data = []
+            drawView()
+          }
+        }
+        function reorder() {
+          var tele = []
+          var auto = []
+          for(var i = 0; i < data.length; i++) {
+            if(data[i].period == "Auto") {
+              auto.push(data[i])
+            } else {
+              tele.push(data[i])
+            }
+          }
+          data = auto
+          for(var i = 0; i < tele.length; i++) {
+            data.push(tele[i])
+          }
+        }
+
+        function updateListOrder(isMoveUp) {
+          reorder()
+          var newList = []
+          for(var i = 0; i < data.length; i++) {
+            if(isMoveUp) {
+              if(i+1 != data.length && activeID == data[i].id) {
+                newList.push(data[i+1])
+                newList.push(data[i])
+                i += 1;
+              } else {
+                newList.push(data[i])
+              }
+            } else {
+
+              if(i+1 != data.length && activeID == data[i+1].id) {
+                newList.push(data[i+1])
+                newList.push(data[i])
+                i += 1;
+              } else {
+                newList.push(data[i])
+              }
+            }
+          }
+          data = newList
+          reorder()
+          drawView()
+        }
+
+        function getNewID() {
+          var newWidgerID = "ENTRYID" + created
+          // return newWidgerID
+          var isGood = true;
+          for(var i = 0; i < 100; i++) {
+            newWidgerID = "ENTRYID" + created
+            isGood = true
+
+            for(var j = 0; j < data.length; j++) {
+              if(data[j].id == newWidgerID) {
+                isGood = false
+              }
+            }
+            if(isGood) { break; }
+            created += 1;
+          }
+          return newWidgerID
+        }
 
         function newWidget() {
+          var newWidgerID = getNewID()
+
           var blankData = {
             id: "ENTRYID" + created,
-            name: "New",
+            name: "New " + created,
             period: "Auto",
             type: "PM",
+          }
+          if(activeID != "") { 
+            for(var i = 0; i < data.length; i++) {
+              if(data[i].id == activeID) {
+                blankData.period = data[i].period
+              }
+            }
           }
           activeID = blankData.id
           data.push(blankData)
@@ -82,24 +196,41 @@
               document.getElementById("activeName").value = json.name
               document.getElementById("AORT").value = json.period
               document.getElementById("Type").value = json.type
+              try{ 
+              document.getElementById(activeID).style.backgroundColor = "#484848"
+              document.getElementById(lastactiveID).style.backgroundColor = "#282828"
+              }catch(err) {}
               if(json.type == "SL") {
                 var div = document.getElementById('CustomWidgetSettingsDiv')
-                if(!document.getElementById("MinSliderConfig")) {
+                if(!document.getElementById("MinSliderConfig") || lastactiveID != activeID) {
                   div.innerHTML = ""
+                  var minVal = 0
+                  var maxVal = 100
+                  var startVal = 0
+                  if(json.hasOwnProperty("min")) { minVal = parseInt(json.min) }
+                  if(json.hasOwnProperty("max")) { maxVal = parseInt(json.max) }
+                  if(json.hasOwnProperty("start")) { startVal = parseInt(json.start) }
                   var maxLabel = document.createElement("LABLE")
                   maxLabel.innerHTML = "Max:&nbsp;&nbsp;"
                   var minLabel = document.createElement("LABLE")
                   minLabel.innerHTML = "Min:&nbsp;&nbsp;"
+                  var startLabel = document.createElement("LABLE")
+                  startLabel.innerHTML = "Inital:&nbsp;&nbsp;"
                   var max = document.createElement("INPUT")
                   max.id = "MaxSliderConfig"
                   max.className = "largeInput2"
                   max.onchange = sidebarUpdated
-                  max.value = "100"
+                  max.value = maxVal
                   var min = document.createElement("INPUT")
                   min.id = "MinSliderConfig"
-                  min.value = "0"
+                  min.value = minVal
                   min.className = "largeInput2"
                   min.onchange = sidebarUpdated
+                  var start = document.createElement("INPUT")
+                  start.id = "StartSliderConfig"
+                  start.value = startVal
+                  start.className = "largeInput2"
+                  start.onchange = sidebarUpdated
                   div.appendChild(document.createElement("BR"))
                   div.appendChild(maxLabel)
                   div.appendChild(max)
@@ -107,11 +238,23 @@
                   div.appendChild(document.createElement("BR"))
                   div.appendChild(minLabel)
                   div.appendChild(min)
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(startLabel)
+                  div.appendChild(start)
                 }
-              } else if(json.id == "DD") {
+              } else if(json.type == "DD") {
                 var div = document.getElementById('CustomWidgetSettingsDiv')
-                if(!document.getElementById("MinSliderConfig")) {
-                  
+                if(!document.getElementById("DDOptons")  || lastactiveID != activeID) {
+                  div.innerHTML = ""
+                  div.appendChild(getNewTextBox("List options seperated by new line", "DDOptons"))
+                  var a = document.getElementById("DDOptonsdataPickupIDAdder")
+                  try {
+                  for(var i = 0; i < (json.options).length; i++) {
+                    a.value = a.value + (json.options)[i] + "\n"
+                  }
+                  } catch(err) {}
+                  document.getElementById("DDOptons" + dataPickupIDAdder).onchange = sidebarUpdated
                 }
               } else {
                 var div = document.getElementById('CustomWidgetSettingsDiv')
@@ -119,6 +262,7 @@
               }
             }
           }
+          lastactiveID = activeID
         }
         function sidebarUpdated() {
           for(var i = 0; i < data.length; i++) {
@@ -132,41 +276,50 @@
                 try {
                   json.min = document.getElementById("MinSliderConfig").value
                   json.max = document.getElementById("MaxSliderConfig").value
+                  json.start = document.getElementById("StartSliderConfig").value
+                } catch(err) {}
+              } else if(json.type == "DD") {
+                try {
+                  var dataAA = (document.getElementById("DDOptons" + dataPickupIDAdder).value).split("\n")
+                  json.options = dataAA
                 } catch(err) {}
               }
             }
           }
-          updateSidebar()
           drawView()
+          updateSidebar()
         }
         function drawView() {
           document.getElementById('autoContent').innerHTML = ""
+          document.getElementById('teleContent').innerHTML = ""
           for(var i = 0; i < data.length; i++) {
             var json = data[i]
+            var dest = "autoContent"
+            if(json.period == "Tele") { dest = "teleContent" }
             if(json.type == "PM") {
-              var ele = getNewPlusMinus(json.name, json.id)
+              var ele = getNewPlusMinus(json)
               ele.onclick = setActiveID.bind(null, ele.id)
-              document.getElementById('autoContent').appendChild(ele);
+              document.getElementById(dest).appendChild(ele);
             } else if(json.type == "CB") {
-              var ele = getNewCheckbox(json.name, json.id)
+              var ele = getNewCheckbox(json)
               ele.onclick = setActiveID.bind(null, ele.id)
-              document.getElementById('autoContent').appendChild(ele);
+              document.getElementById(dest).appendChild(ele);
             } else if(json.type == "TE") {
-              var ele = getNewTextBox(json.name, json.id)
+              var ele = getNewTextBox(json)
               ele.onclick = setActiveID.bind(null, ele.id)
-              document.getElementById('autoContent').appendChild(ele);
+              document.getElementById(dest).appendChild(ele);
             } else if(json.type == "TM") {
-              var ele = getNewTimmer(json.name, json.id, json)
+              var ele = getNewTimmer(json)
               ele.onclick = setActiveID.bind(null, ele.id)
-              document.getElementById('autoContent').appendChild(ele);
+              document.getElementById(dest).appendChild(ele);
             } else if(json.type == "DD") {
-              var ele = getNewDropDown(json.name, json.id, json)
+              var ele = getNewDropDown(json)
               ele.onclick = setActiveID.bind(null, ele.id)
-              document.getElementById('autoContent').appendChild(ele);
+              document.getElementById(dest).appendChild(ele);
             } else if(json.type == "SL") {
-              var ele = getNewSlider(json.name, json.id, json)
+              var ele = getNewSlider(json)
               ele.onclick = setActiveID.bind(null, ele.id)
-              document.getElementById('autoContent').appendChild(ele);
+              document.getElementById(dest).appendChild(ele);
             }
           }
         }
@@ -174,7 +327,12 @@
           activeID = id
           updateSidebar();
         }
+        function correctColor() {
+          try {
+          document.getElementById(activeID).style.backgroundColor = '#484848'
+          } catch(err) {}
 
+        }
 
         function openPage(pageName, elmnt, color) {
           // Hide all elements with class="tabcontent" by default
@@ -196,6 +354,7 @@
           // Add the specific color to the button used to open the tab content
           elmnt.style.backgroundColor = color;
         }
+        setInterval(correctColor, 10)
         document.getElementById("defaultOpen").click();
       </script>
   </body>

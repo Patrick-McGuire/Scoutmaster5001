@@ -5,10 +5,10 @@
   </head>
   <body>
       <button class="tablink" onclick="openPage('Tab1', this, '#666')" id="defaultOpen">Scouting Entry</button>
-      <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
-      <button class="tablink" onclick="openPage('Tab4', this, '#666')" id="graphTabButton">Graph</button>
-      <button class="tablink" onclick="openPage('Tab5', this, '#666')" id="teamLookupTabButton">Team Lookup</button>
-      <button class="tablink" onclick="openPage('Tab6', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
+      <button class="tablink" onclick="openPage('Tab2', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
+      <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="graphTabButton">Graph</button>
+      <button class="tablink" onclick="openPage('Tab4', this, '#666')" id="teamLookupTabButton">Team Lookup</button>
+      <button class="tablink" onclick="openPage('Tab5', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
      
       <div id="Tab1" class="tabcontent">
         <div class="row">
@@ -47,7 +47,33 @@
       </div>    
 
       <div id="Tab2" class="tabcontent">
-        
+        <div class="row">
+          <div id="Tab1Colum" class="column left">
+            <h3>Pit Scouting</h3>
+            <div id="pitScoutContent"></div>
+          </div>
+          <div class="column center">
+            <p></p>
+          </div>
+          <div class="column right">
+            <button class="dialogButton" onclick="savePitScoutConfig()">Save</button>
+            <button class="dialogButton" onclick="clearAll()">Clear All</button>
+            <button id="moveUPPitScout" class="dialogButton" onclick="updateListOrder(false)">Move Up</button>
+            <button id="moveDownPitScout" class="dialogButton" onclick="updateListOrder(true)">Move Down</button>
+            <button id="newWidgetButtonPitScout" class="dialogButton" onclick="newWidget()">New</button>
+            <button id="deleteWidgetButtonPitScout" class="dialogButton" onclick="deleteWiget()">Delete</button><hr>
+            <label>Name:&nbsp;&nbsp;</label><input type="text" id="activeNamePitScout" class="largeInput2" onchange="sidebarUpdated()"><br><br>
+            <label>Type:&nbsp;&nbsp;</label><select name="position" id="TypePitScout" onchange="sidebarUpdated()">
+              <option value="PM">Plus/Minus</option>
+              <option value="CB">Checkbox</option>
+              <option value="TE">Text Entry</option>
+              <option value="SL">Slider</option>
+              <option value="DD">Drop Down</option>
+              <option value="TM">Timer</option>
+            </select>
+            <div id="CustomWidgetSettingsDivPitScout"><p></p></div>
+          </div>
+        </div>
       </div>
       <div id="Tab3" class="tabcontent">
         

@@ -18,9 +18,14 @@ function openDialog() {
 function getConfigData() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
   var dataToPull = parseInt(getValue(spreadsheet, "Config", "A1"))
-  var scoutingEntryConfigRaw = getValues(spreadsheet, "Config", "A3", "A" + (dataToPull + 2))
+  var scoutingEntryConfigRaw = getValues(spreadsheet, "Config", "A3", "B" + (dataToPull + 2))
   var scoutingEntryConfig = []
-  for(var i = 0; i < scoutingEntryConfigRaw.length; i++) { scoutingEntryConfig.push(scoutingEntryConfigRaw[i][0]) }
+  var pitScoutingConfig = []
+  for(var i = 0; i < scoutingEntryConfigRaw.length; i++) {
+    if(scoutingEntryConfigRaw[i][0] != "") { scoutingEntryConfig.push(scoutingEntryConfigRaw[i][0]) }
+    if(scoutingEntryConfigRaw[i][1] != "") { pitScoutingConfig.push(scoutingEntryConfigRaw[i][1]) }
+  }
   if(dataToPull == "0") {scoutingEntryConfig = []}
-  return [scoutingEntryConfig]
+
+  return [scoutingEntryConfig, pitScoutingConfig]
 }

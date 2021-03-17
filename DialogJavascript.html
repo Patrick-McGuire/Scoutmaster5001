@@ -1,5 +1,8 @@
       <script>
-        var data = []
+        var activePage = ""
+
+        var scoutConfigData = []
+        var pitConfigData = []
         var created = 0
         var activeID = ""
         var lastactiveID = ""
@@ -8,11 +11,18 @@
         load()
         function load() {
           google.script.run.withSuccessHandler(function(dataIn) {
-            data = []
+            scoutConfigData = []
+            pitConfigData = []
             for(var i = 0; i < dataIn[0].length; i++) {
-              data.push(JSON.parse(dataIn[0][i]))
-              if(parseInt((data[i].id).replace("ENTRYID", "")) >= created) {
-                created += 1
+              scoutConfigData.push(JSON.parse(dataIn[0][i]))
+              if(parseInt((scoutConfigData[i].id).replace("ENTRYID", "")) >= created) {
+                created = 1 + parseInt((scoutConfigData[i].id).replace("ENTRYID", ""))
+              }
+            }
+            for(var i = 0; i < dataIn[1].length; i++) {
+              pitConfigData.push(JSON.parse(dataIn[1][i]))
+              if(parseInt((pitConfigData[i].id).replace("ENTRYID", "")) >= created) {
+                created = 1 + parseInt((pitConfigData[i].id).replace("ENTRYID", ""))
               }
             }
             drawView()
@@ -21,13 +31,24 @@
 
         function saveDataEntryConfig() {
           var saveData = []
-          for(var i = 0; i < data.length; i++) { saveData.push([JSON.stringify(data[i])] ) }
+          for(var i = 0; i < scoutConfigData.length; i++) { saveData.push([JSON.stringify(scoutConfigData[i])] ) }
           google.script.run.withSuccessHandler(function() {
             google.script.run.setValues(null, "Config", "A3", "A" + (saveData.length + 2), saveData)
           }).clearContent(null, "Config", "A3", "A")
         }
 
+        function savePitScoutConfig() {
+          var saveData = []
+          for(var i = 0; i < pitConfigData.length; i++) { saveData.push([JSON.stringify(pitConfigData[i])] ) }
+          google.script.run.withSuccessHandler(function() {
+            google.script.run.setValues(null, "Config", "B3", "B" + (saveData.length + 2), saveData)
+          }).clearContent(null, "Config", "B3", "B")
+        }
+
         function deleteWiget() {
+          var data = scoutConfigData
+          if(activePage == "Tab2") {data = pitConfigData}
+
           for(var i = 0; i < data.length; i++) {
             if(data[i].id == activeID) {
               data.splice(i, 1)
@@ -37,11 +58,17 @@
         }
         function clearAll() {
           if(confirm("Are you sure?")) {
-            data = []
+            if(activePage == "Tab2") {
+              pitConfigData = []
+            } else {
+              scoutConfigData = []
+            }
             drawView()
           }
         }
         function reorder() {
+          var data = scoutConfigData
+
           var tele = []
           var auto = []
           for(var i = 0; i < data.length; i++) {
@@ -58,7 +85,12 @@
         }
 
         function updateListOrder(isMoveUp) {
-          reorder()
+          var data = scoutConfigData
+          if(activePage == "Tab2") { 
+            data = pitConfigData 
+          } else {
+            reorder()
+          }
           var newList = []
           for(var i = 0; i < data.length; i++) {
             if(isMoveUp) {
@@ -80,21 +112,30 @@
               }
             }
           }
-          data = newList
-          reorder()
+
+          if(activePage == "Tab2") { 
+            pitConfigData = newList
+          } else {
+            scoutConfigData = newList
+            reorder() 
+          }
           drawView()
         }
 
         function getNewID() {
           var newWidgerID = "ENTRYID" + created
-          // return newWidgerID
           var isGood = true;
           for(var i = 0; i < 100; i++) {
             newWidgerID = "ENTRYID" + created
             isGood = true
 
-            for(var j = 0; j < data.length; j++) {
-              if(data[j].id == newWidgerID) {
+            for(var j = 0; j < scoutConfigData.length; j++) {
+              if(scoutConfigData[j].id == newWidgerID) {
+                isGood = false
+              }
+            }
+            for(var j = 0; j < pitConfigData.length; j++) {
+              if(pitConfigData[j].id == newWidgerID) {
                 isGood = false
               }
             }
@@ -105,6 +146,8 @@
         }
 
         function newWidget() {
+          var data = scoutConfigData
+          if(activePage == "Tab2") {data = pitConfigData}
           var newWidgerID = getNewID()
 
           var blankData = {
@@ -113,6 +156,8 @@
             period: "Auto",
             type: "PM",
           }
+
+          if(activePage == "Tab2") { blankData.period = "Pit" }
           if(activeID != "") { 
             for(var i = 0; i < data.length; i++) {
               if(data[i].id == activeID) {
@@ -128,19 +173,23 @@
           drawView()
         }
         function updateSidebar() {
+          var data = scoutConfigData
+          var pitTabAdder = ""
+          if(activePage == "Tab2") {data = pitConfigData; pitTabAdder = "PitScout"}
+
           for(var i = 0; i < data.length; i++) {
             var json = data[i]
             if(json.id == activeID) {
-              document.getElementById("activeName").value = json.name
-              document.getElementById("AORT").value = json.period
-              document.getElementById("Type").value = json.type
+              document.getElementById("activeName" + pitTabAdder).value = json.name
+              if(activePage == "Tab1") { document.getElementById("AORT").value = json.period }
+              document.getElementById("Type" + pitTabAdder).value = json.type
               try{ 
               document.getElementById(activeID).style.backgroundColor = "#484848"
               document.getElementById(lastactiveID).style.backgroundColor = "#282828"
               }catch(err) {}
               if(json.type == "SL") {
-                var div = document.getElementById('CustomWidgetSettingsDiv')
-                if(!document.getElementById("MinSliderConfig") || lastactiveID != activeID) {
+                var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
+                if(!document.getElementById("MinSliderConfig" + pitTabAdder) || lastactiveID != activeID) {
                   div.innerHTML = ""
                   var minVal = 0
                   var maxVal = 100
@@ -155,17 +204,17 @@
                   var startLabel = document.createElement("LABLE")
                   startLabel.innerHTML = "Inital:&nbsp;&nbsp;"
                   var max = document.createElement("INPUT")
-                  max.id = "MaxSliderConfig"
+                  max.id = "MaxSliderConfig" + pitTabAdder
                   max.className = "largeInput2"
                   max.onchange = sidebarUpdated
                   max.value = maxVal
                   var min = document.createElement("INPUT")
-                  min.id = "MinSliderConfig"
+                  min.id = "MinSliderConfig" + pitTabAdder
                   min.value = minVal
                   min.className = "largeInput2"
                   min.onchange = sidebarUpdated
                   var start = document.createElement("INPUT")
-                  start.id = "StartSliderConfig"
+                  start.id = "StartSliderConfig" + pitTabAdder
                   start.value = startVal
                   start.className = "largeInput2"
                   start.onchange = sidebarUpdated
@@ -182,20 +231,20 @@
                   div.appendChild(start)
                 }
               } else if(json.type == "DD") {
-                var div = document.getElementById('CustomWidgetSettingsDiv')
-                if(!document.getElementById("DDOptons")  || lastactiveID != activeID) {
+                var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
+                if(!document.getElementById("DDOptons" + pitTabAdder)  || lastactiveID != activeID) {
                   div.innerHTML = ""
-                  div.appendChild(getNewTextBox({name:"List options seperated by new line", id:"DDOptons"}))
-                  var a = document.getElementById("DDOptonsdataPickupIDAdder")
+                  div.appendChild(getNewTextBox({name:"List options seperated by new line", id:"DDOptons" + pitTabAdder}))
+                  var a = document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder)
                   try {
                   for(var i = 0; i < (json.options).length; i++) {
                     a.value = a.value + (json.options)[i] + "\n"
                   }
-                  } catch(err) {}
-                  document.getElementById("DDOptons" + dataPickupIDAdder).onchange = sidebarUpdated
+                  } catch(err) { }
+                  document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder).onchange = sidebarUpdated
                 }
               } else {
-                var div = document.getElementById('CustomWidgetSettingsDiv')
+                var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
                 div.innerHTML = ""
               }
             }
@@ -203,22 +252,26 @@
           lastactiveID = activeID
         }
         function sidebarUpdated() {
+          var data = scoutConfigData
+          var pitTabAdder = ""
+          if(activePage == "Tab2") {data = pitConfigData; pitTabAdder = "PitScout"}
+
           for(var i = 0; i < data.length; i++) {
             var newJSON = {}
             var json = data[i]
             if(json.id == activeID) {
-              json.name = document.getElementById("activeName").value
-              json.period = document.getElementById("AORT").value
-              json.type = document.getElementById("Type").value
+              json.name = document.getElementById("activeName" + pitTabAdder).value
+              if(activePage == "Tab2") { json.period = "Pit" } else { json.period = document.getElementById("AORT").value }
+              json.type = document.getElementById("Type" + pitTabAdder).value
               if(json.type == "SL") {
                 try {
-                  json.min = document.getElementById("MinSliderConfig").value
-                  json.max = document.getElementById("MaxSliderConfig").value
-                  json.start = document.getElementById("StartSliderConfig").value
+                  json.min = document.getElementById("MinSliderConfig" + pitTabAdder).value
+                  json.max = document.getElementById("MaxSliderConfig" + pitTabAdder).value
+                  json.start = document.getElementById("StartSliderConfig" + pitTabAdder).value
                 } catch(err) {}
               } else if(json.type == "DD") {
                 try {
-                  var dataAA = (document.getElementById("DDOptons" + dataPickupIDAdder).value).split("\n")
+                  var dataAA = (document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder).value).split("\n")
                   json.options = dataAA
                 } catch(err) {}
               }
@@ -228,12 +281,17 @@
           updateSidebar()
         }
         function drawView() {
+          var data = scoutConfigData
+          if(activePage == "Tab2") {data = pitConfigData}
+
           document.getElementById('autoContent').innerHTML = ""
           document.getElementById('teleContent').innerHTML = ""
+          document.getElementById('pitScoutContent').innerHTML = ""
           for(var i = 0; i < data.length; i++) {
             var json = data[i]
             var dest = "autoContent"
             if(json.period == "Tele") { dest = "teleContent" }
+            if(json.period == "Pit") { dest = "pitScoutContent"} 
             if(json.type == "PM") {
               var ele = getNewPlusMinus(json)
               ele.onclick = setActiveID.bind(null, ele.id)
@@ -287,10 +345,12 @@
           }
 
           // Show the specific tab content
+          activePage = pageName;
           document.getElementById(pageName).style.display = "block";
 
           // Add the specific color to the button used to open the tab content
           elmnt.style.backgroundColor = color;
+          drawView()
         }
         setInterval(correctColor, 10)
         document.getElementById("defaultOpen").click();

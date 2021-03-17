@@ -95,6 +95,7 @@ function getNewSlider(options) {
   div.appendChild(displayInput)
   return div
 }
+
 function getNewDropDown(options) {
   var name = options.name
   var id = options.id
@@ -106,6 +107,7 @@ function getNewDropDown(options) {
   lable.innerHTML = name + ":   "
   var select = document.createElement("SELECT")
   select.id = id + dataPickupIDAdder
+  select.onchange = function() { updateDropdownOther(id) }
   for(var i = 0; i < data.length; i++) {
     var splitOptions = data[i].split("->")
     if(splitOptions.length == 2) {
@@ -120,9 +122,15 @@ function getNewDropDown(options) {
       select.add(optionVar)
     }
   }
+  var otherBox = document.createElement("INPUT")
+  otherBox.className = "largeInput"
+  otherBox.id = id + dataPickupIDAdder + "OTHER"
+  otherBox.style.visibility = "hidden";
+
   div.appendChild(document.createElement("BR"))
   div.appendChild(lable)
   div.appendChild(select)
+  div.appendChild(otherBox)
   return div
 }
 function getNewTimmer(options) {
@@ -152,6 +160,13 @@ function getNewTimmer(options) {
 }
 
   //// Event handlers for widget funtions ////
+  function updateDropdownOther(id) {
+    if(document.getElementById(id + dataPickupIDAdder).value.toLowerCase() == "other") {
+      document.getElementById(id + dataPickupIDAdder + "OTHER").style.visibility = "visible";
+    } else {
+      document.getElementById(id + dataPickupIDAdder + "OTHER").style.visibility = "hidden";
+    }
+  }
   function plus(id) {
     var value = parseInt(document.getElementById(id).value, 10);
     value = isNaN(value) ? 0 : value;

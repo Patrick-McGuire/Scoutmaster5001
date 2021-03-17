@@ -185,7 +185,7 @@
                 var div = document.getElementById('CustomWidgetSettingsDiv')
                 if(!document.getElementById("DDOptons")  || lastactiveID != activeID) {
                   div.innerHTML = ""
-                  div.appendChild(getNewTextBox("List options seperated by new line", "DDOptons"))
+                  div.appendChild(getNewTextBox({name:"List options seperated by new line", id:"DDOptons"}))
                   var a = document.getElementById("DDOptonsdataPickupIDAdder")
                   try {
                   for(var i = 0; i < (json.options).length; i++) {

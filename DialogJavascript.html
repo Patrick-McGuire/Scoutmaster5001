@@ -17,15 +17,9 @@
             pitConfigData = []
             for(var i = 0; i < dataIn.scoutingConfig.length; i++) {
               scoutConfigData.push(JSON.parse(dataIn.scoutingConfig[i]))
-              if(parseInt((scoutConfigData[i].id).replace("ENTRYID", "")) >= created) {
-                created = 1 + parseInt((scoutConfigData[i].id).replace("ENTRYID", ""))
-              }
             }
             for(var i = 0; i < dataIn.pitConfig.length; i++) {
               pitConfigData.push(JSON.parse(dataIn.pitConfig[i]))
-              if(parseInt((pitConfigData[i].id).replace("ENTRYID", "")) >= created) {
-                created = 1 + parseInt((pitConfigData[i].id).replace("ENTRYID", ""))
-              }
             }
             for(var i = 0; i < dataIn.customDataConfig.length; i++) {
               customDatapointsConfig.push(JSON.parse(dataIn.customDataConfig[i]))
@@ -166,15 +160,54 @@
           select.style.width = "auto"
           select.className = "CUSTOMCONFIGDATA"
 
-          for(var i = 0; i < allDatapoints.length; i++) {
-            var option = document.createElement("OPTION")
-            option.innerHTML = allDatapoints[i]
-            option.value = allDatapoints[i]
-            select.add(option)
+          var optionsIN = getOptionsList()
+          for(var i = 0; i < optionsIN.length; i++) {
+            select.add(optionsIN[i])
           }
 
           select.value = defValue
           return select
+        }
+        function getOptionsList() {
+          allDatapoints = []
+          for(var i = 0; i < scoutConfigData.length; i++) { allDatapoints.push(scoutConfigData[i].name) }
+          for(var i = 0; i < pitConfigData.length; i++) { allDatapoints.push(pitConfigData[i].name) }
+
+          var outArr = []
+          for(var i = 0; i < allDatapoints.length; i++) {
+            var option = document.createElement("OPTION")
+            option.innerHTML = allDatapoints[i]
+            option.value = allDatapoints[i]
+            outArr.push(option)
+          }
+          return outArr
+        }
+        function selectHasValue(obj, value) {
+          if (obj !== null) {
+            return (obj.innerHTML.indexOf('value="' + value + '"') > -1);
+          } else {
+            return false;
+          }
+        } 
+        function updateDropdowns() {
+          var div = document.getElementById("customizeDatapointsContent") 
+          var divs = div.getElementsByTagName("DIV")  
+
+          for(var i = 0; i < divs.length; i+=2) {
+            var widgArr = divs[i+1].querySelectorAll(".CUSTOMCONFIGDATA")
+            var configDataArr = []
+            for(var j = 0; j < widgArr.length; j+=2) {
+              var widgetToUpdate = widgArr[j]
+              var saveValue = widgetToUpdate.value
+              widgetToUpdate.innerHTML = ""
+              var optionsToAdd = getOptionsList()
+              for(var k = 0; k < optionsToAdd.length; k++) {
+                widgetToUpdate.add(optionsToAdd[k])
+              }
+              if(!selectHasValue(widgetToUpdate, saveValue)) { widgetToUpdate.value = "" }
+              else { widgetToUpdate.value = saveValue }
+            }
+          }
         }
         function getOpeationDropdown(defValue) {
           var select = document.createElement("SELECT")
@@ -223,7 +256,7 @@
           if(activePage == "Tab2") {data = pitConfigData}
 
           for(var i = 0; i < data.length; i++) {
-            if(data[i].id == activeID) {
+            if(data[i].name == activeID) {
               data.splice(i, 1)
             }
             drawView()
@@ -256,16 +289,14 @@
         }
 
         function updateListOrder(isMoveUp) {
-          var data = scoutConfigData
-          if(activePage == "Tab2") { 
-            data = pitConfigData 
-          } else {
-            reorder()
-          }
+          reorder()
+          data = scoutConfigData
+          if(activePage == "Tab2") { data = pitConfigData } 
+
           var newList = []
           for(var i = 0; i < data.length; i++) {
             if(isMoveUp) {
-              if(i+1 != data.length && activeID == data[i].id) {
+              if(i+1 != data.length && activeID == data[i].name) {
                 newList.push(data[i+1])
                 newList.push(data[i])
                 i += 1;
@@ -274,7 +305,7 @@
               }
             } else {
 
-              if(i+1 != data.length && activeID == data[i+1].id) {
+              if(i+1 != data.length && activeID == data[i+1].name) {
                 newList.push(data[i+1])
                 newList.push(data[i])
                 i += 1;
@@ -294,19 +325,19 @@
         }
 
         function getNewID() {
-          var newWidgerID = "ENTRYID" + created
+          var newWidgerID = "New" + created
           var isGood = true;
           for(var i = 0; i < 100; i++) {
-            newWidgerID = "ENTRYID" + created
+            newWidgerID = "New" + created
             isGood = true
 
             for(var j = 0; j < scoutConfigData.length; j++) {
-              if(scoutConfigData[j].id == newWidgerID) {
+              if(scoutConfigData[j].name == newWidgerID) {
                 isGood = false
               }
             }
             for(var j = 0; j < pitConfigData.length; j++) {
-              if(pitConfigData[j].id == newWidgerID) {
+              if(pitConfigData[j].name == newWidgerID) {
                 isGood = false
               }
             }
@@ -322,7 +353,6 @@
           var newWidgerID = getNewID()
 
           var blankData = {
-            id: "ENTRYID" + created,
             name: "New " + created,
             period: "Auto",
             type: "PM",
@@ -331,12 +361,12 @@
           if(activePage == "Tab2") { blankData.period = "Pit" }
           if(activeID != "") { 
             for(var i = 0; i < data.length; i++) {
-              if(data[i].id == activeID) {
+              if(data[i].name == activeID) {
                 blankData.period = data[i].period
               }
             }
           }
-          activeID = blankData.id
+          activeID = blankData.name
           data.push(blankData)
           created += 1
 
@@ -349,7 +379,7 @@
           if(activePage == "Tab2") {data = pitConfigData; pitTabAdder = "PitScout"}
           for(var i = 0; i < data.length; i++) {
             var json = data[i]
-            if(json.id == activeID) {
+            if(json.name == activeID) {
               document.getElementById("activeName" + pitTabAdder).value = json.name
               if(activePage == "Tab1") { document.getElementById("AORT").value = json.period }
               document.getElementById("Type" + pitTabAdder).value = json.type
@@ -402,16 +432,16 @@
                 }
               } else if(json.type == "DD") {
                 var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
-                if(!document.getElementById("DDOptons" + pitTabAdder)  || lastactiveID != activeID) {
+                if(!document.getElementById("List options seperated by new line" + pitTabAdder)  || lastactiveID != activeID) {
                   div.innerHTML = ""
-                  div.appendChild(getNewTextBox({name:"List options seperated by new line", id:"DDOptons" + pitTabAdder}))
-                  var a = document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder)
+                  div.appendChild(getNewTextBox({name:"List options seperated by new line" + pitTabAdder}))
+                  var a = document.getElementById("List options seperated by new line" + pitTabAdder + dataPickupIDAdder)
                   try {
                   for(var j = 0; j < (json.options).length; j++) {
                     a.value = a.value + (json.options)[j] + "\n"
                   }
                   } catch(err) { }
-                  document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder).onchange = sidebarUpdated
+                  document.getElementById("List options seperated by new line" + pitTabAdder + dataPickupIDAdder).onchange = sidebarUpdated
                 }
               } else {
                 var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
@@ -456,6 +486,9 @@
           }
           if(getDuplicateNames().length > 0) { correctNames() }
         }
+
+        var allowedChariters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '?', '#', '(', ')', '/']
+
         function sidebarUpdated() {
           var data = scoutConfigData
           var pitTabAdder = ""
@@ -464,8 +497,14 @@
           for(var i = 0; i < data.length; i++) {
             var newJSON = {}
             var json = data[i]
-            if(json.id == activeID) {
-              json.name = document.getElementById("activeName" + pitTabAdder).value
+            if(json.name == activeID) {
+              var acriveNameIn = document.getElementById("activeName" + pitTabAdder).value
+              var strOutName = ""
+              for(var j = 0; j < acriveNameIn.length; j++) {
+                if(allowedChariters.includes(acriveNameIn[j])) { strOutName += acriveNameIn[j] }
+              }
+              json.name = strOutName
+              activeID = strOutName
               if(activePage == "Tab2") { json.period = "Pit" } else { json.period = document.getElementById("AORT").value }
               json.type = document.getElementById("Type" + pitTabAdder).value
               if(json.type == "SL") {
@@ -476,17 +515,19 @@
                 } catch(err) {}
               } else if(json.type == "DD") {
                 try {
-                  var dataAA = (document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder).value).split("\n")
+                  var dataAA = (document.getElementById("List options seperated by new line" + pitTabAdder + dataPickupIDAdder).value).split("\n")
                   json.options = dataAA
                 } catch(err) {}
               }
             }
           }
-          correctNames()
+          // correctNames()
           drawView()
           updateSidebar()
+          updateDropdowns()
         }
         function drawView() {
+          correctNames()
           var data = scoutConfigData
           if(activePage == "Tab2") {data = pitConfigData}
 

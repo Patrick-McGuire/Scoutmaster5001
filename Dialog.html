@@ -28,7 +28,7 @@
             <button id="moveDown" class="dialogButton" onclick="updateListOrder(true)">Move Down</button>
             <button id="newWidgetButton" class="dialogButton" onclick="newWidget()">New</button>
             <button id="deleteWidgetButton" class="dialogButton" onclick="deleteWiget()">Delete</button><hr>
-            <label>Name:&nbsp;&nbsp;</label><input type="text" id="activeName" class="largeInput2" onchange="sidebarUpdated()"><br><br>
+            <label>Name:&nbsp;&nbsp;</label><input type="text" maxlength="30" id="activeName" class="largeInput2" onchange="sidebarUpdated()"><br><br>
             <label>Auto or Tele:&nbsp;&nbsp;</label><select id="AORT" onchange="sidebarUpdated()">
               <option value="Auto">Auto</option>
               <option value="Tele">Tele</option>

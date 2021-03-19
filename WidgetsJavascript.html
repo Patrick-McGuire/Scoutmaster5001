@@ -5,7 +5,7 @@
 //// Functions to get new widgets ////
 function getNewPlusMinus(options) { 
   var name = options.name
-  var id = options.id
+  var id = options.name
   var div = document.createElement("DIV");
   div.id = id
   var p = document.createElement("P")
@@ -31,7 +31,7 @@ function getNewPlusMinus(options) {
 }
 function getNewCheckbox(options) {
   var name = options.name
-  var id = options.id
+  var id = options.name
   var div = document.createElement("DIV")
   div.id = id
   var label = document.createElement("LABEL")
@@ -46,7 +46,7 @@ function getNewCheckbox(options) {
 }
 function getNewTextBox(options) {
   var name = options.name
-  var id = options.id
+  var id = options.name
   var div = document.createElement("DIV")
   div.id = id
   var p = document.createElement("P")
@@ -60,7 +60,7 @@ function getNewTextBox(options) {
 }
 function getNewSlider(options) {
   var name = options.name
-  var id = options.id
+  var id = options.name
   var min = 1
   var max = 101
   var start = 0
@@ -98,7 +98,7 @@ function getNewSlider(options) {
 
 function getNewDropDown(options) {
   var name = options.name
-  var id = options.id
+  var id = options.name
   var data = ['1', '2']
   if(options.hasOwnProperty("options")) { data = options.options}
   var div = document.createElement("DIV")
@@ -135,7 +135,7 @@ function getNewDropDown(options) {
 }
 function getNewTimmer(options) {
   var name = options.name
-  var id = options.id
+  var id = options.name
   var div = document.createElement("DIV")
   div.id = id
   div.className = "timmerDiv"

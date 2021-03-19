@@ -1,5 +1,5 @@
 function onOpen() {
-  SpreadsheetApp.getUi() // Or DocumentApp or SlidesApp or FormApp.
+  SpreadsheetApp.getUi() // Or DocumentApp or SlidesApp or FormApp. 
       .createMenu('Dialog')
       .addItem('Open', 'openDialog') 
       .addToUi();
@@ -18,14 +18,16 @@ function openDialog() {
 function getConfigData() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
   var dataToPull = parseInt(getValue(spreadsheet, "Config", "A1"))
-  var scoutingEntryConfigRaw = getValues(spreadsheet, "Config", "A3", "B" + (dataToPull + 2))
+  var scoutingEntryConfigRaw = getValues(spreadsheet, "Config", "A3", "C" + (dataToPull + 2))
   var scoutingEntryConfig = []
   var pitScoutingConfig = []
+  var customDataConfig = []
   for(var i = 0; i < scoutingEntryConfigRaw.length; i++) {
     if(scoutingEntryConfigRaw[i][0] != "") { scoutingEntryConfig.push(scoutingEntryConfigRaw[i][0]) }
     if(scoutingEntryConfigRaw[i][1] != "") { pitScoutingConfig.push(scoutingEntryConfigRaw[i][1]) }
+    if(scoutingEntryConfigRaw[i][2] != "") { customDataConfig.push(scoutingEntryConfigRaw[i][2]) }
   }
   if(dataToPull == "0") {scoutingEntryConfig = []}
 
-  return [scoutingEntryConfig, pitScoutingConfig]
+  return {scoutingConfig: scoutingEntryConfig, pitConfig: pitScoutingConfig, customDataConfig: customDataConfig}
 }

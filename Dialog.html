@@ -6,7 +6,7 @@
   <body>
       <button class="tablink" onclick="openPage('Tab1', this, '#666')" id="defaultOpen">Scouting Entry</button>
       <button class="tablink" onclick="openPage('Tab2', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
-      <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="graphTabButton">Graph</button>
+      <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="graphTabButton">Custom Data Points</button>
       <button class="tablink" onclick="openPage('Tab4', this, '#666')" id="teamLookupTabButton">Team Lookup</button>
       <button class="tablink" onclick="openPage('Tab5', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
      
@@ -76,6 +76,10 @@
         </div>
       </div>
       <div id="Tab3" class="tabcontent">
+        <h3>Customize Datapoints</h3>
+        <button class="dialogButton" onclick="saveCustomConfigData()">Save</button><br><hr><br><br>
+        <div id="customizeDatapointsContent"></div>
+        <button onclick="newCostomConfigEntery()">New</button>
         
       </div>
       <div id="Tab4" class="tabcontent">

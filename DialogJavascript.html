@@ -3,7 +3,9 @@
 
         var scoutConfigData = []
         var pitConfigData = []
+        var customDatapointsConfig = []
         var created = 0
+        var customCreated = 0
         var activeID = ""
         var lastactiveID = ""
         document.getElementById("Tab1Colum").style.minHeight = "" + (screen.height/2) + "px"
@@ -13,22 +15,193 @@
           google.script.run.withSuccessHandler(function(dataIn) {
             scoutConfigData = []
             pitConfigData = []
-            for(var i = 0; i < dataIn[0].length; i++) {
-              scoutConfigData.push(JSON.parse(dataIn[0][i]))
+            for(var i = 0; i < dataIn.scoutingConfig.length; i++) {
+              scoutConfigData.push(JSON.parse(dataIn.scoutingConfig[i]))
               if(parseInt((scoutConfigData[i].id).replace("ENTRYID", "")) >= created) {
                 created = 1 + parseInt((scoutConfigData[i].id).replace("ENTRYID", ""))
               }
             }
-            for(var i = 0; i < dataIn[1].length; i++) {
-              pitConfigData.push(JSON.parse(dataIn[1][i]))
+            for(var i = 0; i < dataIn.pitConfig.length; i++) {
+              pitConfigData.push(JSON.parse(dataIn.pitConfig[i]))
               if(parseInt((pitConfigData[i].id).replace("ENTRYID", "")) >= created) {
                 created = 1 + parseInt((pitConfigData[i].id).replace("ENTRYID", ""))
               }
             }
+            for(var i = 0; i < dataIn.customDataConfig.length; i++) {
+              customDatapointsConfig.push(JSON.parse(dataIn.customDataConfig[i]))
+            }
+
             drawView()
+            drawCustomConfig()
           }).getConfigData()
         }
 
+        //// Custom data point functions ////
+        /* JSON Format
+        name: display name
+        type: 'numeric' or 'text'
+        configData: '<dp name><operation>....'
+        */
+        function drawCustomConfig() {
+          var div = document.getElementById("customizeDatapointsContent")
+          div.innerHTML = ""
+          for(var i = 0; i < customDatapointsConfig.length; i++) {
+            div.appendChild(getCustomConfigEntryDiv(customDatapointsConfig[i], "CustomConfigDIVnum" + i))
+            div.appendChild(document.createElement("BR"))
+          }
+          customCreated = customDatapointsConfig.length
+        }
+
+        function newCostomConfigEntery() {
+          var defaultData = {
+            name: "",
+            type: "numeric",
+            configData: [],
+          }
+          var div = document.getElementById("customizeDatapointsContent")
+          div.appendChild(getCustomConfigEntryDiv(defaultData, "CustomConfigDIVnum" + customCreated))
+          customCreated++;
+        }
+
+        function saveCustomConfigData() {
+          var div = document.getElementById("customizeDatapointsContent") 
+          var divs = div.getElementsByTagName("DIV")
+
+          var data = []
+          for(var i = 0; i < divs.length; i+=2) {
+            var json = {}
+            json.name = document.getElementById(divs[i].id + "NAME").value
+            json.type = document.getElementById(divs[i].id + "TYPE").value
+
+            var widgArr = divs[i+1].querySelectorAll(".CUSTOMCONFIGDATA")
+            var configDataArr = []
+            for(var j = 0; j < widgArr.length; j++) {
+              configDataArr.push(widgArr[j].value)
+            }
+            json.configData = configDataArr
+            data.push([JSON.stringify(json)])
+          }
+
+          google.script.run.withSuccessHandler(function() {
+            google.script.run.setValues(null, "Config", "C3", "C" + (data.length + 2), data)
+          }).clearContent(null, "Config", "C3", "C")
+        }
+
+        function getCustomConfigEntryDiv(data, id) {
+          var div = document.createElement("DIV")
+          div.className = "CustomConfigEntryDiv"
+          div.id = id
+          div.className = "timmerDiv"
+
+          var deleteButton = document.createElement("BUTTON")
+          deleteButton.innerHTML = "Remove"
+          deleteButton.onclick = function() {
+            div.innerHTML = ""
+            div.remove()
+          }
+
+          var nameLabel = document.createElement("LABEL")
+          nameLabel.innerHTML = "&nbsp;&nbsp;Name:&nbsp;&nbsp;"
+          var nameInput = document.createElement("INPUT")
+          nameInput.className = "largeInput"
+          nameInput.id = id + "NAME"
+          nameInput.value = data.name
+          var typeSelect = document.createElement("SELECT")
+          typeSelect.id = id + "TYPE"
+          var typeSelectOption1 = document.createElement("OPTION")
+          typeSelectOption1.innerHTML = "Numeric&nbsp;&nbsp;"
+          typeSelectOption1.value = "numeric"
+          var typeSelectOption2 = document.createElement("OPTION")
+          typeSelectOption2.innerHTML = "Text"
+          typeSelectOption2.value = "text"
+          typeSelect.add(typeSelectOption1)
+          typeSelect.add(typeSelectOption2)
+          typeSelect.value = data.type
+          var nameSpacer = document.createElement("LABEL")
+          nameSpacer.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;Config:&nbsp;&nbsp;"
+
+          var configDiv = document.createElement("DIV")
+          configDiv.id = id + "PULLCONFIGDIV"
+          configDiv.style.display = "inline-block"
+
+          var newDatapointConfigButton = document.createElement("BUTTON")
+          newDatapointConfigButton.innerHTML = "New"
+          newDatapointConfigButton.onclick = function() { 
+            if(!configDiv.innerHTML == "") { configDiv.appendChild(getOpeationDropdown("+")); }
+            configDiv.appendChild(getAllDatapointsDropdown("")); 
+          }
+          var delDatapointConfigButton = document.createElement("BUTTON")
+          delDatapointConfigButton.innerHTML = "Delete"
+          delDatapointConfigButton.onclick = function() { 
+            var allWidgets = configDiv.querySelectorAll(".CUSTOMCONFIGDATA")
+            allWidgets[allWidgets.length - 1].remove()
+            allWidgets[allWidgets.length - 2].remove()
+          }
+          
+          configDiv.appendChild(getAllDatapointsDropdown(data.configData[0]))
+          for(var i = 1; i < data.configData.length; i+=2) {
+            configDiv.appendChild(getOpeationDropdown(data.configData[i]))
+            configDiv.appendChild(getAllDatapointsDropdown(data.configData[i+1]))
+          }
+
+          div.appendChild(deleteButton)
+          div.appendChild(nameLabel)
+          div.appendChild(nameInput)
+          div.appendChild(typeSelect)
+          div.appendChild(nameSpacer)
+          div.appendChild(newDatapointConfigButton)
+          div.appendChild(delDatapointConfigButton)
+          div.appendChild(configDiv)
+          div.appendChild(document.createElement("BR"))
+          div.appendChild(document.createElement("BR"))
+          return div
+        }
+
+        function getAllDatapointsDropdown(defValue) {
+          allDatapoints = []
+          for(var i = 0; i < scoutConfigData.length; i++) { allDatapoints.push(scoutConfigData[i].name) }
+          for(var i = 0; i < pitConfigData.length; i++) { allDatapoints.push(pitConfigData[i].name) }
+
+          var select = document.createElement("SELECT")
+          select.style.width = "auto"
+          select.className = "CUSTOMCONFIGDATA"
+
+          for(var i = 0; i < allDatapoints.length; i++) {
+            var option = document.createElement("OPTION")
+            option.innerHTML = allDatapoints[i]
+            option.value = allDatapoints[i]
+            select.add(option)
+          }
+
+          select.value = defValue
+          return select
+        }
+        function getOpeationDropdown(defValue) {
+          var select = document.createElement("SELECT")
+          select.className = "CUSTOMCONFIGDATA"
+
+          var plus = document.createElement("OPTION")
+          plus.innerHTML = "+"
+          plus.value = "+"
+          select.add(plus)
+          var minus = document.createElement("OPTION")
+          minus.innerHTML = "-"
+          minus.value = "-"
+          select.add(minus)
+          var times = document.createElement("OPTION")
+          times.innerHTML = "*"
+          times.value = "*"
+          select.add(times)
+          var divide = document.createElement("OPTION")
+          divide.innerHTML = "/"
+          divide.value = "/"
+          select.add(divide)
+
+          select.value = defValue
+          return select
+        }
+
+        //// Pit and Data entry config functions ////
         function saveDataEntryConfig() {
           var saveData = []
           for(var i = 0; i < scoutConfigData.length; i++) { saveData.push([JSON.stringify(scoutConfigData[i])] ) }
@@ -67,20 +240,18 @@
           }
         }
         function reorder() {
-          var data = scoutConfigData
-
           var tele = []
           var auto = []
-          for(var i = 0; i < data.length; i++) {
-            if(data[i].period == "Auto") {
-              auto.push(data[i])
+          for(var i = 0; i < scoutConfigData.length; i++) {
+            if(scoutConfigData[i].period == "Auto") {
+              auto.push(scoutConfigData[i])
             } else {
-              tele.push(data[i])
+              tele.push(scoutConfigData[i])
             }
           }
-          data = auto
+          scoutConfigData = auto
           for(var i = 0; i < tele.length; i++) {
-            data.push(tele[i])
+            scoutConfigData.push(tele[i])
           }
         }
 
@@ -176,7 +347,6 @@
           var data = scoutConfigData
           var pitTabAdder = ""
           if(activePage == "Tab2") {data = pitConfigData; pitTabAdder = "PitScout"}
-
           for(var i = 0; i < data.length; i++) {
             var json = data[i]
             if(json.id == activeID) {
@@ -237,8 +407,8 @@
                   div.appendChild(getNewTextBox({name:"List options seperated by new line", id:"DDOptons" + pitTabAdder}))
                   var a = document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder)
                   try {
-                  for(var i = 0; i < (json.options).length; i++) {
-                    a.value = a.value + (json.options)[i] + "\n"
+                  for(var j = 0; j < (json.options).length; j++) {
+                    a.value = a.value + (json.options)[j] + "\n"
                   }
                   } catch(err) { }
                   document.getElementById("DDOptons" + pitTabAdder + dataPickupIDAdder).onchange = sidebarUpdated
@@ -250,6 +420,41 @@
             }
           }
           lastactiveID = activeID
+        }
+        
+        const findDuplicates = (arr) => {
+          let sorted_arr = arr.slice().sort(); // You can define the comparing function here. 
+          // JS by default uses a crappy string compare.
+          // (we use slice to clone the array so the
+          // original array won't be modified)
+          let results = [];
+          for (let i = 0; i < sorted_arr.length - 1; i++) {
+            if (sorted_arr[i + 1] == sorted_arr[i]) {
+              results.push(sorted_arr[i]);
+            }
+          }
+          return results;
+        }
+        function getDuplicateNames() {
+          var names = []
+          for(var i = 0; i < scoutConfigData.length; i++) { names.push(scoutConfigData[i].name) }
+          for(var i = 0; i < pitConfigData.length; i++) { names.push(pitConfigData[i].name) }
+          return duplicates = findDuplicates(names)
+        }
+
+        function correctNames() {
+          var duplicates = getDuplicateNames()
+          for(var i = 0; i < scoutConfigData.length; i++) {
+            if(duplicates.includes(scoutConfigData[i].name)) {
+              scoutConfigData[i].name = scoutConfigData[i].name + "UNIQE" + i
+            }
+          }
+          for(var i = 0; i < pitConfigData.length; i++) {
+            if(duplicates.includes(pitConfigData[i].name)) {
+              pitConfigData[i].name = pitConfigData[i].name + "UNIQE" + i
+            }
+          }
+          if(getDuplicateNames().length > 0) { correctNames() }
         }
         function sidebarUpdated() {
           var data = scoutConfigData
@@ -277,6 +482,7 @@
               }
             }
           }
+          correctNames()
           drawView()
           updateSidebar()
         }
@@ -352,6 +558,6 @@
           elmnt.style.backgroundColor = color;
           drawView()
         }
-        setInterval(correctColor, 10)
+        setInterval(correctColor, 100)
         document.getElementById("defaultOpen").click();
       </script>

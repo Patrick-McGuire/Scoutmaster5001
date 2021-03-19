@@ -3,7 +3,7 @@
   var timerCount = 0
 
 //// Functions to get new widgets ////
-function getNewPlusMinus(options) {
+function getNewPlusMinus(options) { 
   var name = options.name
   var id = options.id
   var div = document.createElement("DIV");
@@ -168,14 +168,13 @@ function getNewTimmer(options) {
     }
   }
   function plus(id) {
-    var value = parseInt(document.getElementById(id).value, 10);
+    var value = parseInt(document.getElementById(id).value);
     value = isNaN(value) ? 0 : value;
     value++;
     document.getElementById(id).value = value;
-    document.getElementById("defaultOpen").click();
   }
   function minus(id) {
-    var value = parseInt(document.getElementById(id).value, 10);
+    var value = parseInt(document.getElementById(id).value);
     value = isNaN(value) ? 0 : value;
     value--;
     document.getElementById(id).value = value;

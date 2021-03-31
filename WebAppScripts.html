@@ -460,17 +460,97 @@ function getJSONKeys(options) {
   return removeDuplicates(returnKeys)
 }
 
-/* options values:
-average
-min
-max
-listSTR
+/* options values, only relevent for timmer widgets as it returns a array:
+defults to avrage if getting a custom config data point
+null
+'average' -> number
+'min' -> number
+'max' -> number
+'listSTR' -> string
+'arr' -> array
 */
 function getDatapoint(team, datapointID, match, options) {
-
+  var datapoints = getAllSubDatapoints(datapointID)
+  var config = getCustomConfig(datapointID)
+  if(config === null) { 
+    return getRawDatapoint(team, datapointID, match, options)
+  }
+  var data = {}
+  for(var i = 0; i < datapoints.length; i++) {
+    data[datapoints[i]] = getRawDatapoint(team, datapoints[i], match, "average")
+  }
+  var evalStr = ""
+  for(var i = 0; i < config.length; i++) {
+    evalStr += "(" + data[config[i]] + ")"
+    if(i != config.length - 1) { evalStr += config[i+1] }
+    i++;
+  }
+  return eval(evalStr)
+}
+function getRawDatapoint(team, datapointID, match, options) {
+  var dataOut = null;
+  for(var i = 0; i < matchScoutingData.length; i++) {
+    if(matchScoutingData[i].team == "" + team && matchScoutingData[i].match == "" + match) {
+      if(getWidgetIDFromName(datapointID) == timmerID) {
+        if(options == "average") {
+          dataOut = average(matchScoutingData[i][datapointID].map(Number))
+        } else if(options == "min") {
+          dataOut = Math.min(...matchScoutingData[i][datapointID].map(Number))
+        } else if(options == "max") {
+          dataOut = Math.max(...matchScoutingData[i][datapointID].map(Number))
+        } else if(options == "listSTR") {
+          dataOut = matchScoutingData[i][datapointID].join(",")
+        } else if(options == "arr") {
+          dataOut = matchScoutingData[i][datapointID]
+        }
+      } else {
+        dataOut = matchScoutingData[i][datapointID]
+      }
+    }
+  }
+  return dataOut
 }
 function getDatapoints(team, datapointID, options) {
 
+}
+
+// retruns a list of all of the component datapoints for a custom datapoint
+function getAllSubDatapoints(datapointID) {
+  var outArr = []
+  for(var i = 0; i < cutomDatapointsConfig.length; i++) {
+    if(cutomDatapointsConfig[i].name == datapointID) {
+      var configData = cutomDatapointsConfig[i].configData
+      for(var j = 0; j < configData.length; j++) {
+        outArr.push(configData[j])
+        j++;
+      }
+    }
+  }
+  return outArr.length == 0 ? [datapointID] : outArr
+}
+// Returns the custom config list for a spcific datapoint
+function getCustomConfig(datapointID) {
+  for(var i = 0; i < cutomDatapointsConfig.length; i++) {
+    if(cutomDatapointsConfig[i].name == datapointID) {
+      return cutomDatapointsConfig[i].configData;
+    }
+  }
+  return null;
+}
+// Returns the widget type based on it's name
+function getWidgetIDFromName(name) {
+  var widgetTypeID = null
+  for(var i = 0; i < pitScoutingFormConfig.length; i++) {
+    if(pitScoutingFormConfig[i].name == name) {
+      widgetTypeID = pitScoutingFormConfig[i].type 
+    }
+  }
+  for(var i = 0; i < scoutingFormConfig.length; i++) {
+    if(scoutingFormConfig[i].name == name) {
+      widgetTypeID = scoutingFormConfig[i].type 
+    }
+  }
+  return widgetTypeID
 }
 
 // Checks if we have data for a team at a given match
@@ -499,7 +579,8 @@ function handleIncData(incData) {
   createScoutingForm()                                                // Create the scouting form with the data just pulled from the spreadsheet
   createPitScoutingForm()                                             // Create the pit scouting form with the data just pulled from the spreadsheet
   createMatchSchedule()
-
+  
+  alert(getDatapoint("6806", "Total Hatch", "4", "arr"))
 }
 
 //// Tab managment ////
@@ -534,6 +615,10 @@ function openPage(pageName, elmnt, color) {
 
 
   //// Util ////
+  // get the avrge value from a list of numbers
+  function average(nums) {
+    return nums.reduce((a, b) => (a + b)) / nums.length;
+  }
   // Removes duplicite data from array
   // Returns array without duplicites
   function removeDuplicates(a) {

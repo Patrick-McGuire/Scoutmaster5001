@@ -1,4 +1,12 @@
 <script>
+  // Widget IDs
+  var checkBoxID = "CB"
+  var textBoxID = "TE"
+  var timmerID = "TM"
+  var dropDownID = "DD"
+  var sliderID = "SL"
+  var plusMinusID = "PM"
+
   var dataPickupIDAdder = "dataPickupIDAdder"
   var timerCount = 0
 
@@ -8,6 +16,7 @@ function getNewPlusMinus(options) {
   var id = options.name
   var div = document.createElement("DIV");
   div.id = id
+  div.className = plusMinusID
   var p = document.createElement("P")
   p.innerHTML = name + ":"
   var b1 = document.createElement("BUTTON");
@@ -34,6 +43,7 @@ function getNewCheckbox(options) {
   var id = options.name
   var div = document.createElement("DIV")
   div.id = id
+  div.className = checkBoxID
   var label = document.createElement("LABEL")
   label.innerHTML = name + ":  "
   var input = document.createElement("INPUT")
@@ -49,6 +59,7 @@ function getNewTextBox(options) {
   var id = options.name
   var div = document.createElement("DIV")
   div.id = id
+  div.className = textBoxID
   var p = document.createElement("P")
   p.innerHTML = name + ":"
   var input = document.createElement("TEXTAREA")
@@ -73,6 +84,7 @@ function getNewSlider(options) {
   }
   var div = document.createElement("DIV")
   div.id = id
+  div.className = sliderID
   var label = document.createElement("LABLE")
   label.innerHTML = name = name + ":   "
   var slider = document.createElement("INPUT")
@@ -103,6 +115,7 @@ function getNewDropDown(options) {
   if(options.hasOwnProperty("options")) { data = options.options}
   var div = document.createElement("DIV")
   div.id = id
+  div.className = dropDownID
   var lable = document.createElement("LABLE")
   lable.innerHTML = name + ":   "
   var select = document.createElement("SELECT")
@@ -122,6 +135,7 @@ function getNewDropDown(options) {
       select.add(optionVar)
     }
   }
+  select.value = ""
   var otherBox = document.createElement("INPUT")
   otherBox.className = "largeInput"
   otherBox.id = id + dataPickupIDAdder + "OTHER"
@@ -138,6 +152,7 @@ function getNewTimmer(options) {
   var id = options.name
   var div = document.createElement("DIV")
   div.id = id
+  // div.className = timmerID
   div.className = "timmerDiv"
   var lable = document.createElement("LABLE")
   lable.innerHTML = name + ":&nbsp;"
@@ -149,7 +164,7 @@ function getNewTimmer(options) {
   lable2.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;0'
   lable2.id = id + "TimerDisplay"
   var p = document.createElement("DIV")
-  p.id = id + "timmerRecorededData"
+  p.id = id + dataPickupIDAdder
 
   div.appendChild(document.createElement("BR"))
   div.appendChild(lable)
@@ -193,7 +208,7 @@ function getNewTimmer(options) {
       lable.for = date.getTime() + "<>" + setInterval(function() { timeUpdate(id); }, 50)
       button.innerHTML = "Stop"
     } else {
-      var storedData = document.getElementById(id + "timmerRecorededData")
+      var storedData = document.getElementById(id + dataPickupIDAdder)
       var date = new Date()
       clearInterval(lable.for.split("<>")[1])
     

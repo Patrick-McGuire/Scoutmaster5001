@@ -18,6 +18,8 @@ getDataFromSpreadsheet()
 addUnloadMessage()
 setInterval(online, 500);
 
+
+
 //// Data submition ////
 // Gets all of the data, puts it in json format, and save it to local storage, then tries to upload it
 function scoutingSubmit() {
@@ -83,6 +85,9 @@ function scoutingSubmit() {
   updateOfflineSubmit()
   document.getElementById("matchNumber").value = parseInt(document.getElementById("matchNumber").value, 10) + 1
   matchChangeEvent()
+
+  createTeamLookup()
+  createMatchSchedule()
 }
 // Gets all of the data, puts it in json format, and save it to local storage, then tries to upload it
 function pitScoutingSubmit() {
@@ -146,6 +151,9 @@ function pitScoutingSubmit() {
   localStorage.setItem(pitDataSubID, lsData.join("<UNIQUESEP98437523>"))
   updateOfflineSubmit()
   document.getElementById("pitScoutTeamNumber").value = ""
+
+  createTeamLookup()
+  createMatchSchedule()
 }
 function submitStoredMatchData() {
   if(localStorage.getItem(matchDataSubID) == null) { return; }
@@ -186,9 +194,6 @@ function updateOfflineSubmit() {
 }
 
 //// GUI Generation ////
-function createTeamLookup() {
-
-}
 
 // Adds all of the widgets to the scouting form
 function createMatchSchedule() {
@@ -277,10 +282,121 @@ function addWidget(dest, json) {
   return ele;
 }
 
+function createTeamLookup() {
+  options = {
+    useMatchData: true,
+    usePitData: true,
+    useMatchSchedule: false,
+    useRawTeamList: false
+  }
+  var teams = getTeams(options)
+  var targetDiv = document.getElementById("teamListContent")
+  targetDiv.innerHTML = ""
 
+  for(var i = 0; i < teams.length; i++) {
+    var nameP = document.createElement("P")
+    nameP.innerHTML = teams[i]
+    targetDiv.appendChild(nameP)
+    targetDiv.appendChild(getTeamFullDataTable(teams[i], true))
+    var a = document.createElement("LABEL")
+    a.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+    targetDiv.appendChild(a)
+    targetDiv.appendChild(getTeamFullDataTable(teams[i], false))
+    targetDiv.appendChild(document.createElement("BR"))
+    targetDiv.appendChild(document.createElement("BR"))
+  }
+  
+}
 
+function getTeamFullDataTable(team, isMatchData) {
+  var jsonKeysOptions = {
+    usePitConfig: true,
+    useMatchConfig: false,
+    usePitData: true,
+    useMatchData: false
+  }
+  if(isMatchData) {
+    jsonKeysOptions = {
+      usePitConfig: false,
+      useMatchConfig: true,
+      usePitData: false,
+      useMatchData: true
+    }
+  }
+  var matches = getTeamMatchs(team)
+  if(!isMatchData) { matches = ["Pit"] }
+  var keys = getJSONKeys(jsonKeysOptions)
+
+  var table = document.createElement("TABLE")
+  table.className = "blacnkTable"
+
+  var thead = document.createElement("THEAD")
+  table.appendChild(thead)
+  var headerRow = document.createElement("TR")
+  headerRow.className = "blacnkTable"
+  var fillerHeader = document.createElement("TH")
+  fillerHeader.className = "blacnkTable"
+  headerRow.appendChild(fillerHeader)
+
+  for(var j = 0; j < keys.length; j++) {
+    if(keys[j] != "team" && keys[j] != "match") {
+      var rowElement = document.createElement("TH")
+      rowElement.className = "rotate-45"
+      var rowDiv = document.createElement("DIV")
+      var rowSpan = document.createElement("SPAN")
+      rowSpan.innerHTML = keys[j]
+      rowDiv.appendChild(rowSpan)
+      rowElement.appendChild(rowDiv)
+      headerRow.appendChild(rowElement)
+    }
+  }
+  thead.appendChild(headerRow)
+
+  var tbody = document.createElement("TBODY")
+  table.appendChild(tbody)
+
+  for(var j = 0; j < matches.length; j++) {
+    if(isMatchData) {
+      var datapoints = getDatapointsByMatch(team, matches[j], "listSTR")
+    } else {
+      var datapoints = getPitDatapoints(team, "listSTR")
+    }    
+
+    var row = document.createElement("TR")
+    row.className = "genericTeamLookup"
+    var rowHeader = document.createElement("TH")
+    rowHeader.className = "genericTeamLookup"
+    rowHeader.innerHTML = matches[j] + ":"
+    row.appendChild(rowHeader)
+
+    for(var k = 0; k < keys.length; k++) {
+      if(keys[k] != "team" && keys[k] != "match") {
+        var rowElement = document.createElement("TD")
+        rowElement.className = "genericTeamLookup"
+        rowElement.innerHTML = datapoints[keys[k]]
+        rowElement.onclick = showTeamListModal.bind(null, datapoints[keys[k]])
+        row.appendChild(rowElement)
+      }
+    }
+    tbody.appendChild(row)
+  }
+  var wrapperDiv = document.createElement("DIV")
+  wrapperDiv.style.display = "inline-block"
+  wrapperDiv.appendChild(table)
+  return wrapperDiv
+
+}
 
 //// Event based UI managment ////
+// Show the modal in team list
+function showTeamListModal(textToShow) {
+  document.getElementById("myModal").style.display = "block";
+  document.getElementById("ModalContent").innerHTML = "" + textToShow
+}
+// Hide the modal in team list
+function hideTeamsListModal() {
+  document.getElementById("myModal").style.display = "none";
+}
 // Update the team number when the scout position is changed. Also restricts charicters
 function positionChangeEvent() {
   var scoutPosition = document.getElementById('position').value;
@@ -469,49 +585,116 @@ null
 'listSTR' -> string
 'arr' -> array
 */
-function getDatapoint(team, datapointID, match, options) {
+function getDatapoint(team, datapointID, match, isMatchData, options) {
   var datapoints = getAllSubDatapoints(datapointID)
   var config = getCustomConfig(datapointID)
   if(config === null) { 
-    return getRawDatapoint(team, datapointID, match, options)
+    return getRawDatapoint(team, datapointID, match, isMatchData, options)
   }
-  var data = {}
+  
+  if(getCustomConfigType(datapointID) == "numeric") {
+    var data = {}
+    for(var i = 0; i < datapoints.length; i++) {
+      data[datapoints[i]] = getRawDatapoint(team, datapoints[i], match, isMatchData, "average")
+    }
+
+    var evalStr = ""
+    for(var i = 0; i < config.length; i++) {
+      evalStr += data[config[i]]
+      if(i != config.length - 1) { evalStr += config[i+1] }
+      i++;
+    }
+    return eval(evalStr)
+  }
+  var strOut = ""
   for(var i = 0; i < datapoints.length; i++) {
-    data[datapoints[i]] = getRawDatapoint(team, datapoints[i], match, "average")
+      strOut += getRawDatapoint(team, datapoints[i], match, isMatchData, "listSTR")
+      i++;
   }
-  var evalStr = ""
-  for(var i = 0; i < config.length; i++) {
-    evalStr += "(" + data[config[i]] + ")"
-    if(i != config.length - 1) { evalStr += config[i+1] }
-    i++;
-  }
-  return eval(evalStr)
+  return strOut
 }
-function getRawDatapoint(team, datapointID, match, options) {
+function getRawDatapoint(team, datapointID, match, isMatchData, options) {
   var dataOut = null;
-  for(var i = 0; i < matchScoutingData.length; i++) {
-    if(matchScoutingData[i].team == "" + team && matchScoutingData[i].match == "" + match) {
+  var targetJSONList = matchScoutingData
+  if(!isMatchData) { targetJSONList = pitScoutingData }
+
+  for(var i = 0; i < targetJSONList.length; i++) {
+    if(targetJSONList[i].team == "" + team && !isMatchData || targetJSONList[i].match == "" + match) {
       if(getWidgetIDFromName(datapointID) == timmerID) {
         if(options == "average") {
-          dataOut = average(matchScoutingData[i][datapointID].map(Number))
+          dataOut = average(targetJSONList[i][datapointID].map(Number))
         } else if(options == "min") {
-          dataOut = Math.min(...matchScoutingData[i][datapointID].map(Number))
+          dataOut = Math.min(...targetJSONList[i][datapointID].map(Number))
         } else if(options == "max") {
-          dataOut = Math.max(...matchScoutingData[i][datapointID].map(Number))
+          dataOut = Math.max(...targetJSONList[i][datapointID].map(Number))
         } else if(options == "listSTR") {
-          dataOut = matchScoutingData[i][datapointID].join(",")
+          dataOut = targetJSONList[i][datapointID].join(",")
         } else if(options == "arr") {
-          dataOut = matchScoutingData[i][datapointID]
+          dataOut = targetJSONList[i][datapointID]
         }
       } else {
-        dataOut = matchScoutingData[i][datapointID]
+        dataOut = targetJSONList[i][datapointID]
       }
     }
   }
   return dataOut
 }
-function getDatapoints(team, datapointID, options) {
+function getDatapointsByID(team, datapointID, isMatchData, options) {
+  var matches = getTeamMatchs(team)
+  var dataOut = {
+    matches: matches,
+  }
+  for(var i = 0; i < matches.length; i++) {
+    var dp = getDatapoint(team, datapointID, matches[i], isMatchData, options)
+    if(!(dp === null)) {
+      dataOut[matches[i]] = dp
+    }
+  }
+  return dataOut
+}
+function getPitDatapoints(team, options) {
+  options = {
+    usePitConfig: true,
+    usePitData: true,
+  }
+  var keys = getJSONKeys(options)
+  var dataOut = {
+    keys: keys,
+  }
+  for(var i = 0; i < keys.length; i++) {
+    if(keys[i] != "team" && keys[i] != "match") {
+      var dp = getDatapoint(team, keys[i], {}.match, false, options)
+      if(!(dp === null)) {
+        dataOut[keys[i]] = dp
+      }
+    }
+  }
+  return dataOut
+}
+function getDatapointsByMatch(team, match, options) {
+  var keys = getJSONKeys(null)
+  var dataOut = {
+    keys: keys,
+  }
+  for(var i = 0; i < keys.length; i++) {
+    if(keys[i] != "team" && keys[i] != "match") {
+      var dp = getDatapoint(team, keys[i], match, true, options)
+      if(!(dp === null)) {
+        dataOut[keys[i]] = dp
+      }
+    }
+  }
+  return dataOut
+}
 
+function getTeamMatchs(team) {
+  var matches = []
+  for(var i = 0; i < matchScoutingData.length; i++) {
+    if(matchScoutingData[i].team == "" + team) {
+      matches.push(matchScoutingData[i].match)
+    }
+  }
+  return matches
 }
 
 // retruns a list of all of the component datapoints for a custom datapoint
@@ -536,6 +719,13 @@ function getCustomConfig(datapointID) {
     }
   }
   return null;
+}
+function getCustomConfigType(datapointID) {
+  for(var i = 0; i < cutomDatapointsConfig.length; i++) {
+    if(cutomDatapointsConfig[i].name == datapointID) {
+      return cutomDatapointsConfig[i].type;
+    }
+  }
 }
 // Returns the widget type based on it's name
 function getWidgetIDFromName(name) {
@@ -578,9 +768,12 @@ function handleIncData(incData) {
 
   createScoutingForm()                                                // Create the scouting form with the data just pulled from the spreadsheet
   createPitScoutingForm()                                             // Create the pit scouting form with the data just pulled from the spreadsheet
+  updateOfflineSubmit()
   createMatchSchedule()
   
-  alert(getDatapoint("6806", "Total Hatch", "4", "arr"))
+  createTeamLookup()
+
+  
 }
 
 //// Tab managment ////

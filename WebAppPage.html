@@ -64,7 +64,12 @@
 
       </div>
       <div id="Tab5" class="tabcontent">
-        
+        <h3>Graph:</h3>
+        <p>Uses Averages</p>
+        <label>X Axis: </label><select name="XAxis" id="xAxisGraphSelector" onchange="updateGraph()"></select><br>
+        <label>Y Axis: </label><select name="YAxis" id="yAxisGraphSelector" onchange="updateGraph()"></select><br>
+        <label>Highlight Team:  </label><input type="text" id="highlighttTeamNumber" onchange="updateGraph()"   class="smallInput"><br><br>
+       <div id="chart_div" style="width: 1000px; height: 500px;"></div>
       </div>
       <div id="Tab6" class="tabcontent">
         

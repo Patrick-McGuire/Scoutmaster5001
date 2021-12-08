@@ -387,6 +387,91 @@ function getTeamFullDataTable(team, isMatchData) {
 
 }
 
+function createGraphPage() {
+  // Get stuff we need
+  var xAxisSelect = document.getElementById('xAxisGraphSelector');
+  var yAxisSelect = document.getElementById('yAxisGraphSelector');
+  var cutomIDs = getCustomDatapointIDs();
+
+  // Add custom data points to dropdowns
+  for(var i = 0; i < cutomIDs.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = cutomIDs[i];
+    opt.innerHTML = cutomIDs[i];
+    var opt2 = document.createElement('option');
+    opt2.value = cutomIDs[i];
+    opt2.innerHTML = cutomIDs[i]
+    xAxisSelect.appendChild(opt);
+    yAxisSelect.appendChild(opt2);
+  }
+
+
+}
+
+  function updateGraph() {
+    var xID = document.getElementById("xAxisGraphSelector").value
+    var yID = document.getElementById("yAxisGraphSelector").value
+
+    var teams = getTeams({ useMatchData: true, usePitData: false, useMatchSchedule: false, useRawTeamList: false })
+    var highlighttTeamNumber = document.getElementById("highlighttTeamNumber").value
+
+    // Create the data strucure that is needed to create the graph
+    var data = []
+    for(var i = 0; i < teams.length; i++) {
+      var team = teams[i]
+      var color = "white"
+      if(team == highlighttTeamNumber) { color = "blue" }
+      var xDataPnt = getDatapointsAvByID(team, xID, true);
+      var yDataPnt = getDatapointsAvByID(team, yID, true);
+      data.push([xDataPnt, yDataPnt, team, 'point {size: 4; fill-color: ' + color + '}'])
+    }
+    generateGraph(xID + " vs " + yID, xID, yID, data)
+  }
+
+   // Must be called while the graph tab is selected, and after the tabs are set up in code
+  function generateGraph(title, hAxisTitle, vAxisTitle, rawData) {
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      
+      
+      // data format: [[<x>, <y>, <team>], [<x>, <y>, <team>], etc]
+      function drawChart() {
+        var refData = [['X', 'Y', {role: 'annotation'}, {'type': 'string', 'role': 'style'}]]
+        for(var i = 0; i < rawData.length; i++) {
+          refData.push(rawData[i])
+        }
+      
+        var data = google.visualization.arrayToDataTable(refData);
+        var options = {
+          title:title,
+          titleTextStyle: { color: 'white' },
+          hAxis: {title:hAxisTitle, titleTextStyle:{color:"white"}, gridlines:{color:"#808080"}, minValue: 0, baselineColor: "white", textStyle: {color: "white"}},
+          vAxis: {title:vAxisTitle, titleTextStyle:{color:"white"}, gridlines:{color:"#808080"}, minValue: 0, baselineColor: "white", textStyle: {color: "white"}},
+          legend: 'none',
+          backgroundColor: "#181818",
+          colors:['white'],
+          chartArea: {'width': '85%', 'height': '80%'},
+        };
+
+        var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+        google.visualization.events.addListener(chart, 'select', selectHandler);
+        
+        chart.draw(data, options);
+        
+        function selectHandler() {
+          var selectedItem = chart.getSelection()[0];
+            if (selectedItem) {
+              var team = data.getValue(selectedItem.row, 2);
+              document.getElementById("teamLookupTab").click();
+              window.scrollTo(0, 0);
+              document.getElementById("teamLookupTeam").value = team
+              createTeamLookupDataTable()()
+            }
+          }
+        }
+  }
+
+
 //// Event based UI managment ////
 // Show the modal in team list
 function showTeamListModal(textToShow) {
@@ -461,7 +546,13 @@ function online() {
 
 
 //// Data manipulation ////
-
+function getCustomDatapointIDs() {
+  var outArr = [];
+  for(var i = 0; i < cutomDatapointsConfig.length; i++) {
+    outArr.push(cutomDatapointsConfig[i].name);
+  }
+  return outArr;
+}
 // Gets teams for the sources specified in options
 /* Example options (if options is null it defults to use everything):
 { useMatchData: true,
@@ -639,6 +730,19 @@ function getRawDatapoint(team, datapointID, match, isMatchData, options) {
   }
   return dataOut
 }
+function getDatapointsAvByID(team, datapointID, isMatchData) {
+  var matches = getTeamMatchs(team)
+  var dataOut = 0;
+  var cnt = 0;
+  for(var i = 0; i < matches.length; i++) {
+    var dp = getDatapoint(team, datapointID, matches[i], isMatchData, options)
+    if(!(dp === null)) {
+      dataOut += dp;
+      cnt++;
+    }
+  }
+  return dataOut/cnt;
+}
 function getDatapointsByID(team, datapointID, isMatchData, options) {
   var matches = getTeamMatchs(team)
   var dataOut = {
@@ -772,7 +876,7 @@ function handleIncData(incData) {
   createMatchSchedule()
   
   createTeamLookup()
-
+  createGraphPage();
   
 }
 
@@ -798,11 +902,11 @@ function openPage(pageName, elmnt, color) {
     // Add the specific color to the button used to open the tab content
     elmnt.style.backgroundColor = color;
     
-    // if(pageName == "Tab5") {
-    //   if(document.getElementById("xAxisGraphSelector").innerHTML != "") {
-    //     updateGraph()
-    //   }
-    // }
+    if(pageName == "Tab5") {
+      if(document.getElementById("xAxisGraphSelector").innerHTML != "") {
+        updateGraph()
+      }
+    }
   }
   document.getElementById("defaultOpen").click();
 

@@ -291,7 +291,8 @@ function createTeamLookup() {
   }
   var teams = getTeams(options)
   var targetDiv = document.getElementById("teamListContent")
-  targetDiv.innerHTML = ""
+  targetDiv.innerHTML = "";
+
 
   for(var i = 0; i < teams.length; i++) {
     var nameP = document.createElement("P")

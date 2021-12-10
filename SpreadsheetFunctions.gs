@@ -6,7 +6,28 @@ function parseMatchData(matchScoutingData) {
   return matchData;
 }
 
+function parseMatchSchdule(matchScheduleData) {
+  return JSON.parse(matchScheduleData[0][5]);
+}
+
+function tryNumberify(str) {
+  try {
+    if(str.match(/^-?\d+$/)){                 //valid integer (positive or negative)
+      return parseInt(str);
+    } else if(str.match(/^\d+\.\d+$/)){        //valid float
+      return parseFloat(str)
+    }
+  } catch {
+    
+  }
+  return str;
+}
+
 /**
+ * Returns all teams with data
+ * 
+ * @param {'Data Pulling'!$A$3:$I} dataRange range to pull data from
+ * @returns {teams} array of teams
  * @customfunction
  */
 function getTeams(dataRange) {
@@ -17,10 +38,17 @@ function getTeams(dataRange) {
       teams.push(data[i].team);
     }
   }
+  for(var i = 0; i < teams.length; i++) {
+    teams[i] = tryNumberify(teams[i]);
+  }
   return teams;
 }
 
 /**
+ * Returns the ids of all datapoints in submited data
+ * 
+ * @param {'Data Pulling'!$A$3:$I} dataRange range to pull data from
+ * @returns {ids} array of ids
  * @customfunction
  */
 function getDatapointNames(dataRange) {
@@ -37,6 +65,11 @@ function getDatapointNames(dataRange) {
 }
 
 /**
+ * Returns all matches that a team has data for
+ * 
+ * @param {'Data Pulling'!$A$3:$I} dataRange range to pull data from
+ * @param {125} team team number
+ * @returns {matches} array of matches
  * @customfunction
  */
 function getTeamMatches(dataRange, team) {
@@ -48,13 +81,61 @@ function getTeamMatches(dataRange, team) {
       matches.push(data[i].match);
     }
   }
+  for(var i = 0; i < matches.length; i++) {
+    matches[i] = tryNumberify(matches[i]);
+  }
   return matches;
 }
 
 /**
+ * Returns a datapoint from team and datapoint id
+ * 
+ * @param {'Data Pulling'!$A$3:$I} dataRange range to pull data from 
+ * @param {125} team team number
+ * @param {"autoCargo"} datapointID id of the datapoint to get
+ * @returns {data} average of the data requested
  * @customfunction
  */
-function getData(dataRange, team, match, datapointID) {
+function getTeamData(dataRange, team, datapointID) {
+  team = "" + team;
+  datapointID = "" + datapointID;
+  var data = parseMatchData(dataRange);
+
+  var out = [];
+  for(var i = 0; i < data.length; i++) {
+    if(data[i].team == team) {
+      if(Array.isArray(data[i][datapointID])) {
+        var out1 = "(";
+        for(var i = 0; i < data[i][datapointID].length; i++) {
+          if(i != data[i][datapointID].length - 1) {
+            out1 += data[i][datapointID][i] + ", ";
+          } else {
+            out1 += data[i][datapointID][i];
+          }
+        }
+        return out1 + ")"; 
+      } else {
+        out.push(data[i][datapointID]);
+      }
+    }
+  }
+  for(var i = 0; i < out.length; i++) {
+    out[i] = tryNumberify(out[i]);
+  }
+  return [out];
+}
+
+/**
+ * Returns a datapoint from team, match and datapoint id
+ * 
+ * @param {'Data Pulling'!$A$3:$I} dataRange range to pull data from 
+ * @param {125} team team number
+ * @param {1} match match number
+ * @param {"autoCargo"} datapointID id of the datapoint to get
+ * @returns {data} the data requested
+ * @customfunction
+ */
+function getTeamMatchData(dataRange, team, match, datapointID) {
   team = "" + team;
   match = "" + match;
   datapointID = "" + datapointID;
@@ -73,9 +154,27 @@ function getData(dataRange, team, match, datapointID) {
         }
         return out1 + ")"; 
       } else {
-        return out;
+        return tryNumberify(out);
       }
     }
   }
   return "err";
 }
+
+/**
+ * Returns a list of all teams in a match
+ * 
+ * @param {'Data Pulling'!$A$3:$I} dataRange range to pull data from 
+ * @param {1} match match number
+ * @returns {teams} the teams in the match
+ * @customfunction
+ */
+function getMatchTeams(dataRange, match) {
+  match = parseInt(match);
+  var data = parseMatchSchdule(dataRange);
+  return [data[match - 1]];
+}
+
+
+
+

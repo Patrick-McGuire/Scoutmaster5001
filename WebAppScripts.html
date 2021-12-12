@@ -422,9 +422,13 @@ function createGraphPage() {
       var team = teams[i]
       var color = "white"
       if(team == highlighttTeamNumber) { color = "blue" }
-      var xDataPnt = getDatapointsAvByID(team, xID, true);
-      var yDataPnt = getDatapointsAvByID(team, yID, true);
-      data.push([xDataPnt, yDataPnt, team, 'point {size: 4; fill-color: ' + color + '}'])
+      try {
+        var xDataPnt = getDatapointsAvByID(team, xID, true);
+        var yDataPnt = getDatapointsAvByID(team, yID, true);
+        data.push([xDataPnt, yDataPnt, team, 'point {size: 4; fill-color: ' + color + '}'])
+      } catch(e) {
+        data.push([0, 0, team, 'point {size: 4; fill-color: ' + color + '}'])
+      }
     }
     generateGraph(xID + " vs " + yID, xID, yID, data)
   }

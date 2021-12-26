@@ -1,8 +1,13 @@
 function onOpen() {
   SpreadsheetApp.getUi() // Or DocumentApp or SlidesApp or FormApp. 
-      .createMenu('Dialog')
-      .addItem('Open', 'openDialog') 
+      .createMenu('Scoutmaster5001')
+      .addItem('TBA Import', 'tbaImportAll')
+      .addItem('Configure', 'openDialog') 
       .addToUi();
+}
+
+function tbaImportAll() {
+
 }
 
 function openDialog() {

@@ -4,7 +4,7 @@ function parseMatchData(matchScoutingData) {
     if(matchScoutingData[i][8] != "") { matchData.push(JSON.parse(matchScoutingData[i][8])) }
   }
   return matchData;
-}
+} 
 
 function parseMatchSchdule(matchScheduleData) {
   return JSON.parse(matchScheduleData[0][5]);

@@ -13,6 +13,7 @@ var matchDataSubID = "Scoutmaster5001StoredMatchData"
 var pitDataSubID = "Scoutmaster5001StoredPitData"
 var allScoutingFormWidgetObj = []
 var allPitScoutingFormWidgetObj = []
+var teamList = []
 
 getDataFromSpreadsheet()
 addUnloadMessage()
@@ -287,7 +288,7 @@ function createTeamLookup() {
     useMatchData: true,
     usePitData: true,
     useMatchSchedule: false,
-    useRawTeamList: false
+    useRawTeamList: true,
   }
   var teams = getTeams(options)
   var targetDiv = document.getElementById("teamListContent")
@@ -298,11 +299,15 @@ function createTeamLookup() {
     var nameP = document.createElement("P")
     nameP.innerHTML = teams[i]
     targetDiv.appendChild(nameP)
-    targetDiv.appendChild(getTeamFullDataTable(teams[i], true))
+    if(teamHasMatchData(teams[i])) {
+      targetDiv.appendChild(getTeamFullDataTable(teams[i], true))
+    }
     var a = document.createElement("LABEL")
     a.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
     targetDiv.appendChild(a)
-    targetDiv.appendChild(getTeamFullDataTable(teams[i], false))
+    if(teamHasPitData(teams[i])) {
+      targetDiv.appendChild(getTeamFullDataTable(teams[i], false))
+    }
     targetDiv.appendChild(document.createElement("BR"))
     targetDiv.appendChild(document.createElement("BR"))
   }
@@ -356,6 +361,7 @@ function getTeamFullDataTable(team, isMatchData) {
   var tbody = document.createElement("TBODY")
   table.appendChild(tbody)
 
+  var dataForAvrages = [];
   for(var j = 0; j < matches.length; j++) {
     if(isMatchData) {
       var datapoints = getDatapointsByMatch(team, matches[j], "listSTR")
@@ -370,22 +376,58 @@ function getTeamFullDataTable(team, isMatchData) {
     rowHeader.innerHTML = matches[j] + ":"
     row.appendChild(rowHeader)
 
+    dataForAvrages.push([]);
     for(var k = 0; k < keys.length; k++) {
       if(keys[k] != "team" && keys[k] != "match") {
         var rowElement = document.createElement("TD")
         rowElement.className = "genericTeamLookup"
         rowElement.innerHTML = datapoints[keys[k]]
+        dataForAvrages[j].push(datapoints[keys[k]]);
         rowElement.onclick = showTeamListModal.bind(null, datapoints[keys[k]])
         row.appendChild(rowElement)
       }
     }
     tbody.appendChild(row)
   }
+  if(isMatchData) {
+    dataForAvrages = dataForAvrages[0].map((_, colIndex) => dataForAvrages.map(row => row[colIndex]));    // Transpose the array
+    // Create the row for the avrages
+    var row = document.createElement("TR")
+    row.className = "genericTeamLookup"
+    var rowHeader = document.createElement("TH")
+    rowHeader.className = "genericTeamLookup"
+    rowHeader.innerHTML = "Avs:"
+    row.appendChild(rowHeader)
+    // Add all the avrages
+    for(var j = 0; j < dataForAvrages.length; j++) {
+      var rowElement = document.createElement("TD")
+      rowElement.className = "genericTeamLookup"
+      rowElement.innerHTML = safeAverage(dataForAvrages[j], "")
+      rowElement.onclick = showTeamListModal.bind(null, safeAverage(dataForAvrages[j], ""))
+      row.appendChild(rowElement)
+    }
+    tbody.appendChild(row)
+  }
+
+  
   var wrapperDiv = document.createElement("DIV")
   wrapperDiv.style.display = "inline-block"
   wrapperDiv.appendChild(table)
   return wrapperDiv
 
+}
+
+function safeAverage(array, defaultVal) {
+  var sum = 0;
+  var count = 0;
+  for(var i = 0; i < array.length; i++) {
+    var val = tryNumberify(array[i]);
+    if(typeof val === 'number') {
+      sum += tryNumberify(array[i]);
+      count++;
+    }
+  }
+  return count != 0 ? sum / count : defaultVal;
 }
 
 function createGraphPage() {
@@ -621,6 +663,14 @@ function getTeams(options) {
       }
     }
   } catch(err) {}
+  // Get teams from team list
+  try {
+    if(options.hasOwnProperty("useRawTeamList") && options.useRawTeamList) {
+      for(var i = 0; i < teamList.length; i++) {
+        returnTeams.push("" + teamList[i]);
+      }
+    }
+  } catch(err) {}
 
   return sortStringArrayNumerically(removeDuplicates(returnTeams))
 }
@@ -685,6 +735,25 @@ function getJSONKeys(options) {
   
   return removeDuplicates(returnKeys)
 }
+
+function teamHasMatchData(team) {
+  for(var i = 0; i < matchScoutingData.length; i++) {
+    if(matchScoutingData[i].team == team) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function teamHasPitData(team) {
+  for(var i = 0; i < pitScoutingData.length; i++) {
+    if(pitScoutingData[i].team == team) {
+      return true;
+    }
+  }
+  return false;
+}
+
 
 /* options values, only relevent for timmer widgets as it returns a array:
 defults to avrage if getting a custom config data point
@@ -755,7 +824,7 @@ function getDatapointsAvByID(team, datapointID, isMatchData) {
   var cnt = 0;
   for(var i = 0; i < matches.length; i++) {
     var dp = getDatapoint(team, datapointID, matches[i], isMatchData, options)
-    if(!(dp === null)) {
+    if(!(dp === null) && typeof dp === 'number') {
       dataOut += dp;
       cnt++;
     }
@@ -887,6 +956,7 @@ function handleIncData(incData) {
   for(var i = 0; i < incData.customDataConfig.length; i++) { cutomDatapointsConfig.push(JSON.parse(incData.customDataConfig[i])) }
   for(var i = 0; i < incData.pitData.length; i++) { pitScoutingData.push(JSON.parse(incData.pitData[i])) }
   for(var i = 0; i < incData.matchData.length; i++) { matchScoutingData.push(JSON.parse(incData.matchData[i])) }
+  for(var i = 0; i < incData.teamList.length; i++) { teamList.push(incData.teamList[i]) }
   matchSchedule = JSON.parse(incData.matchSchedule)
 
   createScoutingForm()                                                // Create the scouting form with the data just pulled from the spreadsheet

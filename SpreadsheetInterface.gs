@@ -6,10 +6,6 @@ function onOpen() {
       .addToUi();
 }
 
-function tbaImportAll() {
-
-}
-
 function openDialog() {
   // var html = HtmlService.createHtmlOutputFromFile('Dialog').evaluate();
   var template = HtmlService.createTemplateFromFile('Dialog');
@@ -30,12 +26,13 @@ function submitData(data, sheetName) {
 function getData() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
   var dataToPull = parseInt(getValue(spreadsheet, "Data Pulling", "A1"))
-  var scoutingEntryConfigRaw = getValues(spreadsheet, "Data Pulling", "A3", "I" + (dataToPull + 2))
+  var scoutingEntryConfigRaw = getValues(spreadsheet, "Data Pulling", "A3", "J" + (dataToPull + 2))
   var scoutingEntryConfig = []
   var pitScoutingConfig = []
   var customDataConfig = []
   var matchData = []
   var pitData = []
+  var teamList = []
 
   for(var i = 0; i < scoutingEntryConfigRaw.length; i++) {
     if(scoutingEntryConfigRaw[i][0] != "") { scoutingEntryConfig.push(scoutingEntryConfigRaw[i][0]) }
@@ -43,6 +40,7 @@ function getData() {
     if(scoutingEntryConfigRaw[i][2] != "") { customDataConfig.push(scoutingEntryConfigRaw[i][2]) }
     if(scoutingEntryConfigRaw[i][7] != "") { pitData.push(scoutingEntryConfigRaw[i][7]) }
     if(scoutingEntryConfigRaw[i][8] != "") { matchData.push(scoutingEntryConfigRaw[i][8]) }
+    if(scoutingEntryConfigRaw[i][9] != "") { teamList.push(scoutingEntryConfigRaw[i][9]) }
   }
   if(dataToPull == "0") {scoutingEntryConfig = []}
 
@@ -53,6 +51,7 @@ function getData() {
     matchSchedule: scoutingEntryConfigRaw[0][5],
     matchData: matchData,
     pitData: pitData,
+    teamList : teamList,
   }
 }
 

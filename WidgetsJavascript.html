@@ -237,4 +237,17 @@ function getNewTimmer(options) {
     }
   }
 
+function tryNumberify(str) {
+  try {
+    if(str.match(/^-?\d+$/)){                 //valid integer (positive or negative)
+      return parseInt(str);
+    } else if(str.match(/^\d+\.\d+$/)){        //valid float
+      return parseFloat(str)
+    }
+  } catch {
+    
+  }
+  return str;
+}
+
 </script>

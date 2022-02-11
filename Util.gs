@@ -52,6 +52,10 @@ function getValue(spreadsheet, sheet, startCell) {
   return spreadsheet.getRange(getRangeString(sheet, startCell, "")).getValue();
 }
 
+function setArray(spreadsheet, sheet, row, col, values) {
+  if(spreadsheet === null) { spreadsheet = SpreadsheetApp.getActiveSpreadsheet() }
+  spreadsheet.getSheetByName(sheet).getRange(row, col, values.length, values[0].length).setValues(values);
+}
 // Sets the value of a group of cells
 function setValues(spreadsheet, sheet, startCell, endCell, values) {
   if(spreadsheet === null) { spreadsheet = SpreadsheetApp.getActiveSpreadsheet() }

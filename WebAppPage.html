@@ -4,6 +4,9 @@
     <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
   </head>
   <body>
+      <div id="RETURN_BUTTON" class="returnButtonDiv">
+        <button id="RETURN_BUTTON_BTN" class="returnButton" onclick="hideReturnButton()">Return</button>
+      </div>
       <button class="tablink" onclick="openPage('Tab1', this, '#666')" id="defaultOpen">Scouting Entry</button>
       <button class="tablink" onclick="openPage('Tab2', this, '#666')" id="matchScheduleTabButton">Match Scheule</button>
       <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
@@ -50,6 +53,13 @@
         <div id="pitScoutingContent"></div><br><hr><br>
         <button type="button" class="submitButton" id="onlinePitSubmit" onclick="pitScoutingSubmit()">Submit</button>
         <button type="button" class="submitButton" id="offlinePitSubmit" onclick="submitStoredPitData()">Submit Stored Data (0)</button>
+        <br><hr><br>
+        <h3>Upload Picture</h3>
+        <form id="imgForm">
+          <input type="file" name="myFile" id="file">
+          <input class="blue" type="button" id="submitBtn" value="Upload File" onclick="uploadthis(this.parentNode)">
+        </form>
+        <p id="imgUploadStatus"></p>
       </div>
       <div id="Tab4" class="tabcontent">
         <h2>Team List</h2>
@@ -68,7 +78,7 @@
         <p>Uses Averages</p>
         <label>X Axis: </label><select name="XAxis" id="xAxisGraphSelector" onchange="updateGraph()"></select><br>
         <label>Y Axis: </label><select name="YAxis" id="yAxisGraphSelector" onchange="updateGraph()"></select><br>
-        <label>Highlight Team:  </label><input type="text" id="highlighttTeamNumber" onchange="updateGraph()"   class="smallInput"><br><br>
+        <label>Highlight Teams:  </label><input type="text" id="highlighttTeamNumber" onchange="updateGraph()"   class="largeInput"><br><br>
        <div id="chart_div" style="width: 1000px; height: 500px;"></div>
       </div>
       <div id="Tab6" class="tabcontent">

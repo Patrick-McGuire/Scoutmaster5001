@@ -3,6 +3,7 @@ function onOpen() {
       .createMenu('Scoutmaster5001')
       .addItem('TBA Import', 'tbaImportAll')
       .addItem('Configure', 'openDialog') 
+      .addItem("Import image links", 'updateImgLinks')
       .addToUi();
 }
 
@@ -52,6 +53,7 @@ function getData() {
     matchData: matchData,
     pitData: pitData,
     teamList : teamList,
+    imgLinks: scoutingEntryConfigRaw[0][6],
   }
 }
 

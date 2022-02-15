@@ -14,11 +14,51 @@ var pitDataSubID = "Scoutmaster5001StoredPitData"
 var allScoutingFormWidgetObj = []
 var allPitScoutingFormWidgetObj = []
 var teamList = []
+var returnButtonData = []
+var imageLinks = {}
 
 getDataFromSpreadsheet()
 addUnloadMessage()
 setInterval(online, 500);
 
+function doneUploading() {
+  var status = document.getElementById("imgUploadStatus")
+  status.innerHTML = "Done!"
+  status.style.color = "green"
+}
+
+function failedUploading() {
+  var status = document.getElementById("imgUploadStatus")
+  status.innerHTML = "Error"
+  status.style.color = "red"
+}
+
+function uploadthis(fileForm){
+  var status = document.getElementById("imgUploadStatus")
+  if(status.innerHTML == "Uploading!") {
+    alert("Upload in progress")
+    return;
+  }
+  if(document.getElementById("pitScoutTeamNumber").value == "") { 
+    alert("no team number")
+    return 
+  }
+
+  const file = fileForm.myFile.files[0];
+  const fr = new FileReader();
+  fr.onload = function(e) {
+    const obj = {
+      // filename: file.name,  // In your script, the filename is given at GAS side. So I removed this.
+      mimeType: file.type,
+      bytes: [...new Int8Array(e.target.result)]
+    };
+    google.script.run.withSuccessHandler(doneUploading).withFailureHandler(failedUploading).uploadFiles(obj, document.getElementById("pitScoutTeamNumber").value);
+  };
+  fr.readAsArrayBuffer(file);
+  document.getElementById("imgForm").reset();
+  status.innerHTML = "Uploading!"
+  status.style.color = "orange"
+}
 
 
 //// Data submition ////
@@ -230,6 +270,13 @@ function createMatchSchedule() {
       var activeCell = document.createElement("TD")
       activeCell.className = cellClassName
       activeCell.innerHTML = cellData
+      const teamName = "" + cellData
+      const returnCell = activeCell
+      activeCell.onclick = function() {
+        document.getElementById("teamListTabButton").click();
+        document.getElementById("TEAMLOOKUP_WRAPPERDIV_" + teamName).scrollIntoView();
+        showReturnButton(document.getElementById("matchScheduleTabButton"), returnCell);
+      }
       activeRow.appendChild(activeCell)
     }
     table.appendChild(activeRow)
@@ -294,11 +341,13 @@ function createTeamLookup() {
   var targetDiv = document.getElementById("teamListContent")
   targetDiv.innerHTML = "";
 
-
   for(var i = 0; i < teams.length; i++) {
     var nameP = document.createElement("P")
+    nameP.id = "TEAMLOOKUP_WRAPPERDIV_" + teams[i];
     nameP.innerHTML = teams[i]
     targetDiv.appendChild(nameP)
+    targetDiv.appendChild(getImg(teams[i]))
+    targetDiv.appendChild(document.createElement("BR"))
     if(teamHasMatchData(teams[i])) {
       targetDiv.appendChild(getTeamFullDataTable(teams[i], true))
     }
@@ -313,6 +362,32 @@ function createTeamLookup() {
   }
   
 }
+var imgIDCounter = 0
+function getImg(team) {
+  img = document.createElement('img');
+  if(imageLinks.hasOwnProperty(team)) {
+    var imgId = team + "TeamImgID" + imgIDCounter
+    imgIDCounter++;
+    img.src = imageLinks[team];
+    img.id = imgId
+    img.className = "teamImg"
+    img.onclick = function() { growImg(imgId) }
+  }
+  return img;
+}
+
+function growImg(imgID) {
+  img = document.getElementById(imgID); 
+  if(img.style.width == "200px" || img.style.width == "") {
+    img.style.width = "600px"; 
+    img.style.height = "auto"; 
+    img.style.transition = "width 0.5s ease"; 
+    return;
+  }
+  img.style.width = "200px"; 
+  img.style.height = "auto"; 
+  img.style.transition = "width 0.5s ease"; 
+} 
 
 function getTeamFullDataTable(team, isMatchData) {
   var jsonKeysOptions = {
@@ -470,14 +545,15 @@ function forceNumberify(str, defaultVal) {
     var yID = document.getElementById("yAxisGraphSelector").value
 
     var teams = getTeams({ useMatchData: true, usePitData: false, useMatchSchedule: false, useRawTeamList: false })
-    var highlighttTeamNumber = document.getElementById("highlighttTeamNumber").value
+    var highlighttTeamNumber = "" + document.getElementById("highlighttTeamNumber").value
+    var highlightTeams = document.getElementById('highlighttTeamNumber').value.split(",");
 
     // Create the data strucure that is needed to create the graph
     var data = []
     for(var i = 0; i < teams.length; i++) {
       var team = teams[i]
       var color = "white"
-      if(team == highlighttTeamNumber) { color = "blue" }
+      if(team == highlighttTeamNumber || highlightTeams.includes(team)) { color = "blue" }
       try {
         var xDataPnt = forceNumberify(getDatapointsAvByID(team, xID, true), 0);
         var yDataPnt = forceNumberify(getDatapointsAvByID(team, yID, true), 0);
@@ -523,10 +599,9 @@ function forceNumberify(str, defaultVal) {
           var selectedItem = chart.getSelection()[0];
             if (selectedItem) {
               var team = data.getValue(selectedItem.row, 2);
-              document.getElementById("teamLookupTab").click();
-              window.scrollTo(0, 0);
-              document.getElementById("teamLookupTeam").value = team
-              createTeamLookupDataTable()()
+              document.getElementById("teamListTabButton").click();
+              document.getElementById("TEAMLOOKUP_WRAPPERDIV_" + team).scrollIntoView();
+              showReturnButton(document.getElementById("graphTabButton"), document.getElementById("Tab5"));
             }
           }
         }
@@ -534,6 +609,20 @@ function forceNumberify(str, defaultVal) {
 
 
 //// Event based UI managment ////
+function showReturnButton(returnTab, scrollElement) {
+  document.getElementById("RETURN_BUTTON").style.display = "block";
+  returnButtonData = [returnTab, scrollElement];
+}
+function hideReturnButton() {
+  document.getElementById("RETURN_BUTTON").style.display = "none";
+  try {
+    returnButtonData[0].click();
+    returnButtonData[1].scrollIntoView();
+  } catch(e) {
+
+  }
+}
+
 // Show the modal in team list
 function showTeamListModal(textToShow) {
   document.getElementById("myModal").style.display = "block";
@@ -542,6 +631,11 @@ function showTeamListModal(textToShow) {
 // Hide the modal in team list
 function hideTeamsListModal() {
   document.getElementById("myModal").style.display = "none";
+}
+document.onkeydown = function(e) {
+  if (e.key == "Escape") {
+    hideTeamsListModal();
+  }
 }
 // Update the team number when the scout position is changed. Also restricts charicters
 function positionChangeEvent() {
@@ -958,6 +1052,7 @@ function handleIncData(incData) {
   for(var i = 0; i < incData.matchData.length; i++) { matchScoutingData.push(JSON.parse(incData.matchData[i])) }
   for(var i = 0; i < incData.teamList.length; i++) { teamList.push(incData.teamList[i]) }
   matchSchedule = JSON.parse(incData.matchSchedule)
+  imageLinks = JSON.parse(incData.imgLinks)
 
   createScoutingForm()                                                // Create the scouting form with the data just pulled from the spreadsheet
   createPitScoutingForm()                                             // Create the pit scouting form with the data just pulled from the spreadsheet
@@ -972,6 +1067,7 @@ function handleIncData(incData) {
 //// Tab managment ////
 // Handles switching tabs
 function openPage(pageName, elmnt, color) {
+  hideReturnButton();
     // Hide all elements with class="tabcontent" by default
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");

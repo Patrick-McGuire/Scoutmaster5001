@@ -614,12 +614,12 @@ function showReturnButton(returnTab, scrollElement) {
   returnButtonData = [returnTab, scrollElement];
 }
 function hideReturnButton() {
-  document.getElementById("RETURN_BUTTON").style.display = "none";
-  try {
-    returnButtonData[0].click();
-    returnButtonData[1].scrollIntoView();
-  } catch(e) {
-
+  if(document.getElementById("RETURN_BUTTON").style.display != "none") {
+    document.getElementById("RETURN_BUTTON").style.display = "none";
+    try {
+      returnButtonData[0].click();
+      returnButtonData[1].scrollIntoView();
+    } catch(e) {}
   }
 }
 

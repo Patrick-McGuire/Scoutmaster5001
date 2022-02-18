@@ -272,10 +272,12 @@ function createMatchSchedule() {
       activeCell.innerHTML = cellData
       const teamName = "" + cellData
       const returnCell = activeCell
-      activeCell.onclick = function() {
-        document.getElementById("teamListTabButton").click();
-        document.getElementById("TEAMLOOKUP_WRAPPERDIV_" + teamName).scrollIntoView();
-        showReturnButton(document.getElementById("matchScheduleTabButton"), returnCell);
+      if(j != 0) {
+        activeCell.onclick = function() {
+          document.getElementById("teamListTabButton").click();
+          document.getElementById("TEAMLOOKUP_WRAPPERDIV_" + teamName).scrollIntoView();
+          showReturnButton(document.getElementById("matchScheduleTabButton"), returnCell);
+        }
       }
       activeRow.appendChild(activeCell)
     }

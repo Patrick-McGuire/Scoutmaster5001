@@ -7,19 +7,28 @@ function doGet(e) {
 
 function uploadFiles(data, team) {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-  var folderName = "Scoutmaster5001_" + getEventKey(spreadsheet) + "_pics"
-  var folders = DriveApp.getFoldersByName(folderName);
+  
+  // Get the folders we need from drive
+  var parentFolderName = "Scoutmaster5001_pics"
+  var targetFolderName = "Scoutmaster5001_" + getEventKey(spreadsheet) + "_pics"
+  var parentFolders = DriveApp.getFoldersByName(parentFolderName);
+  var targetFolders = DriveApp.getFoldersByName(targetFolderName);
+  var targetFolder;
 
-  var folder;
-  if(folders.hasNext()) {
-    folder = folders.next();
+  // Get the valid folder if it exists, or create a new folder
+  if(parentFolders.hasNext() && !targetFolders.hasNext()) {
+    targetFolder = parentFolders.next().createFolder(targetFolderName);
+  } else if(targetFolders.hasNext()) {
+    targetFolder = targetFolders.next();
   } else {
-    folder = DriveApp.createFolder(folderName)
+    targetFolder = DriveApp.createFolder(targetFolderName)
   }
 
+  // Create and add the file
   var file = Utilities.newBlob(data.bytes, data.mimeType, team);  // Modified
-  var createFile = folder.createFile(file);
+  var createFile = targetFolder.createFile(file);
 
+  // Update the links in the spreadsheet
   updateImgLinks();
 }
 

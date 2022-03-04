@@ -12,8 +12,7 @@
       <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
       <button class="tablink" onclick="openPage('Tab4', this, '#666')" id="teamListTabButton">Team List</button>
       <button class="tablink" onclick="openPage('Tab5', this, '#666')" id="graphTabButton">Graph</button>
-      <!-- <button class="tablink" onclick="openPage('Tab6', this, '#666')" id="teamLookupTabButton">Team Lookup</button>
-      <button class="tablink" onclick="openPage('Tab7', this, '#666')" id="matchLookupTabButton">Match Lookup</button> -->
+      <button class="tablink" onclick="openPage('Tab6', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
      
       <div id="Tab1" class="tabcontent">
         <h2>Scouting Entry Form</h2>
@@ -82,7 +81,20 @@
        <div id="chart_div" style="width: 1000px; height: 500px;"></div>
       </div>
       <div id="Tab6" class="tabcontent">
-        
+        <h2>Match Lookup</h2>
+        <label>Match Number: </label><select name="Match Number" id="matchLookupMatchNumberSelect" onchange="updateMatchLookup()"></select><br>
+        <div id="matchLookupContent">
+          <div class="row">
+            <div class="column">
+              <h3>Blue</h3>
+              <div id="ML_blueTeams"></div>
+            </div>
+            <div class="column">
+              <h3>Red</h3>
+              <div id="ML_redTeams"></div>
+            </div>
+          </div>
+        </div>
       </div>
       <div id="Tab7" class="tabcontent">
         

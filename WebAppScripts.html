@@ -332,6 +332,46 @@ function addWidget(dest, json) {
   return ele;
 }
 
+function updateMatchLookup() {
+  var match = matchSchedule[tryNumberify(document.getElementById('matchLookupMatchNumberSelect').value) - 1];
+  var blueDiv = document.getElementById('ML_blueTeams');
+  blueDiv.innerHTML = "";
+  var redDiv = document.getElementById('ML_redTeams');
+  redDiv.innerHTML = "";
+
+  for(var i = 0; i < 3; i++) {
+    var nameP = document.createElement("P")
+    nameP.innerHTML = match[i]
+    blueDiv.appendChild(nameP)
+    try {
+      blueDiv.appendChild(getTeamFullDataTable(match[i], true))
+    } catch(e) {}
+    blueDiv.appendChild(document.createElement("BR"))
+    blueDiv.appendChild(document.createElement("BR"))
+  }
+  for(var i = 0; i < 3; i++) {
+    var nameP = document.createElement("P")
+    nameP.innerHTML = match[i + 3]
+    redDiv.appendChild(nameP)
+    try {
+      redDiv.appendChild(getTeamFullDataTable(match[i + 3], true))
+    } catch(e) {}
+    redDiv.appendChild(document.createElement("BR"))
+    redDiv.appendChild(document.createElement("BR"))
+  }
+}
+
+function createMatchLookup() {
+  var matchSelect = document.getElementById('matchLookupMatchNumberSelect');
+  for(var i = 1; i <= matchSchedule.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.innerHTML = i;
+    matchSelect.appendChild(opt);
+  }
+  updateMatchLookup();
+}
+
 function createTeamLookup() {
   options = {
     useMatchData: true,
@@ -1063,7 +1103,7 @@ function handleIncData(incData) {
   
   createTeamLookup()
   createGraphPage();
-  
+  createMatchLookup()
 }
 
 //// Tab managment ////

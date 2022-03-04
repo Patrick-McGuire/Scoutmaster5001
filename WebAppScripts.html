@@ -278,6 +278,15 @@ function createMatchSchedule() {
           document.getElementById("TEAMLOOKUP_WRAPPERDIV_" + teamName).scrollIntoView();
           showReturnButton(document.getElementById("matchScheduleTabButton"), returnCell);
         }
+      } else {
+        const matchNumberForFunc = i + 1
+        activeCell.onclick = function() {
+          document.getElementById("matchLookupTabButton").click();
+          window.scrollTo(0, 0);
+          document.getElementById("matchLookupMatchNumberSelect").value = matchNumberForFunc
+          updateMatchLookup();
+          showReturnButton(document.getElementById("matchScheduleTabButton"), returnCell);
+        }
       }
       activeRow.appendChild(activeCell)
     }
@@ -344,17 +353,27 @@ function updateMatchLookup() {
     nameP.innerHTML = match[i]
     blueDiv.appendChild(nameP)
     try {
-      blueDiv.appendChild(getTeamFullDataTable(match[i], true))
+      if(teamHasMatchData(match[i])) {
+        blueDiv.appendChild(getTeamFullDataTable(match[i], true))
+      }
+      if(teamHasPitData(match[i])) {
+        blueDiv.appendChild(getTeamFullDataTable(match[i], false))
+      }
     } catch(e) {}
     blueDiv.appendChild(document.createElement("BR"))
     blueDiv.appendChild(document.createElement("BR"))
   }
-  for(var i = 0; i < 3; i++) {
+  for(var i = 3; i < 6; i++) {
     var nameP = document.createElement("P")
-    nameP.innerHTML = match[i + 3]
+    nameP.innerHTML = match[i]
     redDiv.appendChild(nameP)
     try {
-      redDiv.appendChild(getTeamFullDataTable(match[i + 3], true))
+      if(teamHasMatchData(match[i])) {
+        redDiv.appendChild(getTeamFullDataTable(match[i], true))
+      }
+      if(teamHasPitData(match[i])) {
+        redDiv.appendChild(getTeamFullDataTable(match[i], false))
+      }
     } catch(e) {}
     redDiv.appendChild(document.createElement("BR"))
     redDiv.appendChild(document.createElement("BR"))

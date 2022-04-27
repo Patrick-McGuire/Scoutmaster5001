@@ -1,47 +1,52 @@
 function doGet(e) {
-    var template = HtmlService.createTemplateFromFile('Page'); // It will create HTMl page from Index.html file data.
+    var template = HtmlService.createTemplateFromFile('WebAppPage');
     var pageData= template.evaluate()
-    .setTitle('Scoutmaster 5001') // Set Title 
+    .setTitle('125 Worlds') // Set Title 
      return pageData;
 }
 
-function getDataFromSheet(){
-  var sheet = SpreadsheetApp.getActiveSpreadsheet()
-  var logCount = getValue(sheet, dataPulling, 'A10')
-  return getValues(sheet, dataPulling, "B1", "C" + logCount)
-}
-
-function getImageLinks() {
+function uploadFiles(data, team) {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-  try {
-  setStatus(spreadsheet, "Getting img links")
-  var folderName = getImgFolderName(spreadsheet)
-  if(folderName == "") { return }
+  
+  // Get the folders we need from drive
+  var parentFolderName = "Scoutmaster5001_pics"
+  var targetFolderName = "Scoutmaster5001_" + getEventKey(spreadsheet) + "_pics"
+  var parentFolders = DriveApp.getFoldersByName(parentFolderName);
+  var targetFolders = DriveApp.getFoldersByName(targetFolderName);
+  var targetFolder;
 
-  clearContent(spreadsheet, images, "B3", "C128")
-  var imgFiles = DriveApp.getFoldersByName(folderName).next().getFiles()
-  var out = []
-  // Interate though all the files in the folder
-  while(imgFiles.hasNext()) {
-    var file = imgFiles.next()
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
-    out.push([file.getName().replace(/\D/g,''), "https://drive.google.com/uc?export=view&id=" + file.getId()])
+  // Get the valid folder if it exists, or create a new folder
+  if(parentFolders.hasNext() && !targetFolders.hasNext()) {
+    targetFolder = parentFolders.next().createFolder(targetFolderName);
+  } else if(targetFolders.hasNext()) {
+    targetFolder = targetFolders.next();
+  } else {
+    targetFolder = DriveApp.createFolder(targetFolderName)
   }
-  setValues(spreadsheet, images, "B3", "C" + (out.length + 2), out)
-  setStatus(spreadsheet, "Idle")
 
-  } catch(err) {
-    setStatus(spreadsheet, "Import IMG Error: " + err)
-  }
+  // Create and add the file
+  var file = Utilities.newBlob(data.bytes, data.mimeType, team);  // Modified
+  var createFile = targetFolder.createFile(file);
+
+  // Update the links in the spreadsheet
+  updateImgLinks();
 }
 
-function submitData(data, sheetName) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  for(var i = 0; i < data.length; i++) {
-    sheet.appendRow([data[i]])
-  }
-}
+function updateImgLinks() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
 
-function getImgFolderName(spreadsheet) {
-  return getValue(spreadsheet, settings, "D8")
-} 
+  var folderName = "Scoutmaster5001_" + getEventKey(spreadsheet) + "_pics"
+  var folders = DriveApp.getFoldersByName(folderName);
+  if(folders.hasNext()) {
+    var imgFiles = folders.next().getFiles();
+
+    var out = {}
+    while(imgFiles.hasNext()) {
+
+      var file = imgFiles.next()
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
+      out[file.getName().replace(/\D/g,'')] = "https://drive.google.com/uc?export=view&id=" + file.getId()
+    }
+  }
+  setValue(spreadsheet, "Data Pulling", "G3", JSON.stringify(out))
+}

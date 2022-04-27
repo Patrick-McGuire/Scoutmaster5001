@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+  </head>
+  <body>
+      <div id="RETURN_BUTTON" class="returnButtonDiv">
+        <button id="RETURN_BUTTON_BTN" class="returnButton" onclick="hideReturnButton()">Return</button>
+      </div>
+      <button class="tablink" onclick="openPage('Tab1', this, '#666')" id="defaultOpen">Scouting Entry</button>
+      <button class="tablink" onclick="openPage('Tab2', this, '#666')" id="matchScheduleTabButton">Match Scheule</button>
+      <button class="tablink" onclick="openPage('Tab3', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
+      <button class="tablink" onclick="openPage('Tab4', this, '#666')" id="teamListTabButton">Team List</button>
+      <button class="tablink" onclick="openPage('Tab5', this, '#666')" id="graphTabButton">Graph</button>
+      <button class="tablink" onclick="openPage('Tab6', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
+     
+      <div id="Tab1" class="tabcontent">
+        <h2>Scouting Entry Form</h2>
+        <br>
+        <label for="position">Scouting Position:</label>
+        <select name="position" id="position" onchange="positionChangeEvent()" class="scoutPos">
+          <option value="7">None</option>
+          <option value="0">Red 1</option>
+          <option value="1">Red 2</option>
+          <option value="2">Red 3</option>
+          <option value="3">Blue 1</option>
+          <option value="4">Blue 2</option>
+          <option value="5">Blue 3</option>
+        </select><p></p>
+        <label>Match Number: </label><input type="text" id="matchNumber" class="bigInput" value="1" oninput="matchChangeEvent()">
+        <label>Team Number: </label><input type="text" id="teamNumber" class="bigInput" oninput="matchChangeEvent()">
+       
+        <br><br><hr><h3>Auto</h3>
+        <div id="autoContent"></div>
+       
+        <br><hr><br><h3>Tele</h3><br>
+        <div id="teleContent"></div>
+        <br><hr><br>
+        <button type="button" class="submitButton" id="onlineSubmit" onclick="scoutingSubmit()">Submit</button>
+        <button type="button" class="submitButton" id="offlineSubmit" onclick="submitStoredMatchData()">Submit Stored Data (0)</button>
+      </div>    
+
+      <div id="Tab2" class="tabcontent">
+        <h2>Match Schedule</h2>
+        <label>Highlight Teams:  </label>
+        <input type="text" id="highlighttTeamNumberMS" onchange="createMatchSchedule()" class="largeInput"><br><br><br>
+        <div id="matchSchedContent"></div>
+      </div>
+      <div id="Tab3" class="tabcontent">
+        <h2>Pit Scouting</h2>
+        <label>Team Number: </label><input type="text" id="pitScoutTeamNumber" class="bigInput"><br><hr><br>
+        <div id="pitScoutingContent"></div><br><hr><br>
+        <button type="button" class="submitButton" id="onlinePitSubmit" onclick="pitScoutingSubmit()">Submit</button>
+        <button type="button" class="submitButton" id="offlinePitSubmit" onclick="submitStoredPitData()">Submit Stored Data (0)</button>
+        <br><hr><br>
+        <h3>Upload Picture</h3>
+        <form id="imgForm">
+          <input type="file" name="myFile" id="file">
+          <input class="blue" type="button" id="submitBtn" value="Upload File" onclick="uploadthis(this.parentNode)">
+        </form>
+        <p id="imgUploadStatus"></p>
+      </div>
+      <div id="Tab4" class="tabcontent">
+        <h2>Team List</h2>
+        <div id="teamListContent"></div>
+
+        <div id="myModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="hideTeamsListModal()">&times;</span>
+            <p id="ModalContent">Some text in the Modal..</p>
+          </div>
+        </div>
+
+      </div>
+      <div id="Tab5" class="tabcontent">
+        <h3>Graph:</h3>
+        <p>Uses Averages</p>
+        <label>X Axis: </label><select name="XAxis" id="xAxisGraphSelector" onchange="updateGraph()"></select><br>
+        <label>Y Axis: </label><select name="YAxis" id="yAxisGraphSelector" onchange="updateGraph()"></select><br>
+        <label>Highlight Teams:  </label><input type="text" id="highlighttTeamNumber" onchange="updateGraph()"   class="largeInput"><br><br>
+       <div id="chart_div" style="width: 1000px; height: 500px;"></div>
+      </div>
+      <div id="Tab6" class="tabcontent">
+        <h2>Match Lookup</h2>
+        <label>Match Number: </label><select name="Match Number" id="matchLookupMatchNumberSelect" onchange="updateMatchLookup()"></select><br>
+        <div id="matchLookupContent">
+          <div class="row">
+            <div class="column">
+              <h3>Blue</h3>
+              <div id="ML_blueTeams"></div>
+            </div>
+            <div class="column">
+              <h3>Red</h3>
+              <div id="ML_redTeams"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="Tab7" class="tabcontent">
+        
+      </div>
+
+      <?!= HtmlService.createHtmlOutputFromFile('WidgetsJavascript').getContent(); ?>
+      <?!= HtmlService.createHtmlOutputFromFile('WebAppScripts').getContent(); ?>
+  </body>
+</html>

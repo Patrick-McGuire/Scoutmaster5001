@@ -1,5 +1,4 @@
 <style>
-/*https://www.w3schools.com/colors/colors_shades.asp*/
 body, html {
   margin: 0;
   font-family: Arial;
@@ -7,20 +6,206 @@ body, html {
   touch-action: manipulation;
 }
 
-.teamListDiv {
-  overflow-x: scroll;
-  width: 100%
-}
-
 .teamImg {
   width: 200px;
+}
+
+.bigCheck {
+  width: 25px;
+  height: 25px;
+}
+
+.returnButtonDiv {
+  background-color: #282828;
+  color: #C0C0C0;
+  right: 0px;
+  top: 50px;
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+}
+.returnButton {
+  /* background-color: #282828;
+  color: #C0C0C0; */
+}
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+}
+
+/* Modal Content (Image) */
+.modal-content {
+  margin: auto;
+  display: block;
+  width: 80%;
+  max-width: 700px;
+}
+
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #282828;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+.genericTeamLookup{
+  /* width: auto; */
+
+  border: 1px solid grey;
+  border-collapse: collapse;
+  text-align: center;
+  padding: 5px 5px;
+  max-width: 50px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.genericWideTeamLookup{
+  /* width: auto; */
+
+  border: 1px solid grey;
+  border-collapse: collapse;
+  text-align: center;
+  padding: 5px 5px;
+  /* max-width: 50px; */
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.blacnkTable {
+  border: none;
+  border-collapse: collapse;
+  text-align: center;
+  padding: 5px 5px;
+  white-space: nowrap;
+}
+
+.blacnkTableSpacer {
+  border-top-style : hidden!important;
+  border-bottom-style : hidden!important;
+  /* border: none;
+  border-collapse: collapse; */
+  text-align: center;
+  padding: 5px 5px;
+  white-space: nowrap;
+  width:30px;
+}
+
+.rotate-45{
+  height: 80px;
+  min-width: 40px;
+  position: relative;
+  vertical-align: bottom;
+  font-size: 12px;
+  line-height: 0.8;
+}
+
+.rotate-45 > div{
+  position: relative;
+  top: 2px;
+  left: 40px; /* 80 * tan(45) / 2 = 40 where 80 is the height on the cell and 45 is the transform angle*/
+  height: 100%;
+  width: 100%;
+  -ms-transform:skew(-45deg,0deg);
+  -moz-transform:skew(-45deg,0deg);
+  -webkit-transform:skew(-45deg,0deg);
+  -o-transform:skew(-45deg,0deg);
+  transform:skew(-45deg,0deg);
+  overflow: hidden;
+  border: 2px solid grey;
+  border-collapse: collapse;
+}
+
+.rotate-45 span {
+  -ms-transform:skew(45deg,0deg) rotate(315deg);
+  -moz-transform:skew(45deg,0deg) rotate(315deg);
+  -webkit-transform:skew(45deg,0deg) rotate(315deg);
+  -o-transform:skew(45deg,0deg) rotate(315deg);
+  transform:skew(45deg,0deg) rotate(315deg);
+  position: absolute;
+  bottom: 30px; /* 40 cos(45) = 28 with an additional 2px margin*/
+  left: -25px; /*Because it looked good, but there is probably a mathematical link here as well*/
+  display: inline-block;
+  width: 85px; /* 80 / cos(45) - 40 cos (45) = 85 where 80 is the height of the cell, 40 the width of the cell and 45 the transform angle*/
+  text-align: left;
+  // white-space: nowrap; /*whether to display in one line or not*/
+    border-collapse: collapse;
+}
+
+
+
+
+.matchScheduleTable {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  text-align: center;
+  padding: 5px 5px;
+}
+.matchScheduleTableHasData {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  text-align: center;
+  padding: 5px 5px;
+  background-color: #006600;
+}
+.matchScheduleTableHilight {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  text-align: center;
+  padding: 5px 5px;
+  background-color: blue;
+}
+
+.timmerDiv {
+  overflow-x: auto;
 }
 
 .column {
   float: left;
   width: 50%;
-  display: table-cell;
-  overflow-x: scroll;
+  overflow-x: scroll;  
+  /* display: table-cell; */
 }
 
 .row:after {
@@ -29,37 +214,29 @@ body, html {
   clear: both;
 }
 
-.teamLookupTable {
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
-  width: 45%;
+.left {
+  width: 65%;
 }
 
-.tableAA {
-  font-size: 18px;
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
-  color: white;
+.center {
+  width: 5%;
 }
 
-.blueTable {
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
-  background-color: blue;
+.right {
+  width: 30%;
+  position: fixed;
+  top: 80px;
+  left: 69%;
 }
 
-.table {
-  border: 1px solid grey;
-  border-collapse: collapse;
-  text-align: center;
-  padding: 5px 5px;
+.dialogButton {
+  color: #C0C0C0;
+  background-color: #282828;
+  border: 2px solid black;
+  width: 48%;
+  height: 50px;
 }
+
 .genericButton {
   background-color: #282828;
   color: white;
@@ -79,9 +256,28 @@ body, html {
   width: 40px;
 }
 
+.bigInput {
+  width: 100px;
+  font-size: 24px;
+}
+
+.scoutPos {
+  font-size: 24px;
+}
+
 .largeInput {
   width: 120px;
 }
+
+.largeInput2 {
+  width: 70%;
+}
+
+.timerDisplayLabel {
+  padding-right: 10px;
+  padding-left: 20px;
+}
+
 .plusMinusInput {
   border: 2px solid black;
   border-radius: 4px;
@@ -152,4 +348,31 @@ body, html {
 #Tab6 {background-color: #282828;}
 #Tab7 {background-color: #282828;}
 
+.tablink {
+  background-color: #555;
+  color: #C0C0C0;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  width: 16.6666667%;
+}
+
+.tablink2 {
+  background-color: #555;
+  color: #C0C0C0;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  width: 20%;
+}
+
+.tablink:hover {
+  background-color: #666;
+}
 </style>

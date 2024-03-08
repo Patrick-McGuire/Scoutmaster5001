@@ -1,0 +1,255 @@
+<script>
+  // Widget IDs
+  var checkBoxID = "CB"
+  var textBoxID = "TE"
+  var timmerID = "TM"
+  var dropDownID = "DD"
+  var sliderID = "SL"
+  var plusMinusID = "PM"
+
+  var dataPickupIDAdder = "dataPickupIDAdder"
+  var timerCount = 0
+
+//// Functions to get new widgets ////
+function getNewPlusMinus(options) { 
+  var name = options.name
+  var id = options.name
+  var div = document.createElement("DIV");
+  div.id = id
+  div.className = plusMinusID
+  var p = document.createElement("P")
+  p.innerHTML = name + ":"
+  var b1 = document.createElement("BUTTON");
+  b1.innerHTML = "+"
+  b1.className = "plusMinusButon"
+  b1.onclick = function() { plus(id + dataPickupIDAdder) }
+  var b2 = document.createElement("BUTTON");
+  b2.innerHTML = "-"
+  b2.className = "plusMinusButon"
+  b2.onclick = function() { minus(id + dataPickupIDAdder) }
+  var input = document.createElement("INPUT");
+  input.className = "plusMinusInput"
+  input.value = "0"
+  input.id = id + dataPickupIDAdder
+  input.type = "number"
+  div.appendChild(p)
+  div.appendChild(b2);
+  div.appendChild(input);
+  div.appendChild(b1);
+  return div
+}
+function getNewCheckbox(options) {
+  var name = options.name
+  var id = options.name
+  var div = document.createElement("DIV")
+  div.id = id
+  div.className = checkBoxID
+  var label = document.createElement("LABEL")
+  label.innerHTML = name + ":  "
+  var input = document.createElement("INPUT")
+  input.id = id + dataPickupIDAdder
+  input.type = "checkbox"
+  input.className = "bigCheck"
+  div.appendChild(document.createElement("BR"))
+  div.appendChild(label)
+  div.appendChild(input)
+  return div
+}
+function getNewTextBox(options) {
+  var name = options.name
+  var id = options.name
+  var div = document.createElement("DIV")
+  div.id = id
+  div.className = textBoxID
+  var p = document.createElement("P")
+  p.innerHTML = name + ":"
+  var input = document.createElement("TEXTAREA")
+  input.id = id + dataPickupIDAdder
+  input.className = "commentInput"
+  div.appendChild(p)
+  div.appendChild(input)
+  return div
+}
+function getNewSlider(options) {
+  var name = options.name
+  var id = options.name
+  var min = 1
+  var max = 101
+  var start = 0
+  if(options.hasOwnProperty("min")) { min = parseInt(options.min) + 1 }
+  if(options.hasOwnProperty("max")) { max = parseInt(options.max) + 1 }
+  if(options.hasOwnProperty("start")) { 
+    start = parseInt(options.start) 
+  } else { 
+    start = min - 1 
+  }
+  var div = document.createElement("DIV")
+  div.id = id
+  div.className = sliderID
+  var label = document.createElement("LABLE")
+  label.innerHTML = name = name + ":   "
+  var slider = document.createElement("INPUT")
+  slider.type = "range"
+  slider.className = "sliderRange"
+  slider.min = min
+  slider.max = max
+  slider.id = id + "SliderUNIQUE"
+  slider.oninput = function() { sliderDrag(id + "SliderUNIQUE", id + dataPickupIDAdder) }
+  slider.value = start
+  var displayInput = document.createElement("INPUT")
+  displayInput.type = "number"
+  displayInput.id = id + dataPickupIDAdder
+  displayInput.value = start
+  displayInput.className = "sliderText"
+  displayInput.onchange = function() { sliderDrag(id + dataPickupIDAdder, id + "SliderUNIQUE") }
+  div.appendChild(document.createElement("BR"))
+  div.appendChild(label)
+  div.appendChild(slider)
+  div.appendChild(displayInput)
+  return div
+}
+
+function getNewDropDown(options) {
+  var name = options.name
+  var id = options.name
+  var data = ['1', '2']
+  if(options.hasOwnProperty("options")) { data = options.options}
+  var div = document.createElement("DIV")
+  div.id = id
+  div.className = dropDownID
+  var lable = document.createElement("LABLE")
+  lable.innerHTML = name + ":   "
+  var select = document.createElement("SELECT")
+  select.className = "scoutPos"
+  select.id = id + dataPickupIDAdder
+  select.onchange = function() { updateDropdownOther(id) }
+  for(var i = 0; i < data.length; i++) {
+    var splitOptions = data[i].split("->")
+    if(splitOptions.length == 2) {
+      var optionVar = document.createElement("OPTION")
+      optionVar.innerHTML = splitOptions[0]
+      optionVar.value = splitOptions[1]
+      select.add(optionVar)
+    } else {
+      var optionVar = document.createElement("OPTION")
+      optionVar.innerHTML = data[i]
+      optionVar.value = data[i]
+      select.add(optionVar)
+    }
+  }
+  select.value = ""
+  var otherBox = document.createElement("INPUT")
+  otherBox.className = "bigInput"
+  otherBox.id = id + dataPickupIDAdder + "OTHER"
+  otherBox.style.visibility = "hidden";
+
+  div.appendChild(document.createElement("BR"))
+  div.appendChild(lable)
+  div.appendChild(select)
+  div.appendChild(otherBox)
+  return div
+}
+function getNewTimmer(options) {
+  var name = options.name
+  var id = options.name
+  var div = document.createElement("DIV")
+  div.id = id
+  // div.className = timmerID
+  div.className = "timmerDiv"
+  var lable = document.createElement("LABLE")
+  lable.innerHTML = name + ":&nbsp;"
+  var button = document.createElement("BUTTON")
+  button.innerHTML = "Start"
+  button.id = id + "TimerButton"
+  button.onclick = function() { timerClick(id) }
+  var lable2 = document.createElement("LABLE")
+  lable2.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;0'
+  lable2.id = id + "TimerDisplay"
+  var p = document.createElement("DIV")
+  p.id = id + dataPickupIDAdder
+
+  div.appendChild(document.createElement("BR"))
+  div.appendChild(lable)
+  div.appendChild(button)
+  div.appendChild(lable2)
+  div.appendChild(p)
+  return div
+}
+
+  //// Event handlers for widget funtions ////
+  function updateDropdownOther(id) {
+    if(document.getElementById(id + dataPickupIDAdder).value.toLowerCase() == "other") {
+      document.getElementById(id + dataPickupIDAdder + "OTHER").style.visibility = "visible";
+    } else {
+      document.getElementById(id + dataPickupIDAdder + "OTHER").style.visibility = "hidden";
+    }
+  }
+  function plus(id) {
+    var value = parseInt(document.getElementById(id).value);
+    value = isNaN(value) ? 0 : value;
+    value++;
+    document.getElementById(id).value = value;
+  }
+  function minus(id) {
+    var value = parseInt(document.getElementById(id).value);
+    value = isNaN(value) ? 0 : value;
+    value--;
+    document.getElementById(id).value = Math.max(0, value);
+  }
+  function sliderDrag(id, id2) {
+    var value = parseInt(document.getElementById(id).value, 10);
+    value = isNaN(value) ? 0 : value;
+    value--;
+    document.getElementById(id2).value = value;
+  }
+  function timerClick(id) {
+    var button = document.getElementById(id + "TimerButton")
+    var lable = document.getElementById(id + "TimerDisplay")
+    if(button.innerHTML == "Start") {
+      var date = new Date()
+      lable.for = date.getTime() + "<>" + setInterval(function() { timeUpdate(id); }, 50)
+      button.innerHTML = "Stop"
+    } else {
+      var storedData = document.getElementById(id + dataPickupIDAdder)
+      var date = new Date()
+      clearInterval(lable.for.split("<>")[1])
+    
+      var newLable = document.createElement("LABEL")
+      newLable.innerHTML = ((parseInt(date.getTime()) - parseInt(lable.for.split("<>")[0])) / 1000).toFixed(1)
+      newLable.className = "timerDisplayLabel"
+      var idID = "TimerDatapoint" + timerCount
+      newLable.id = idID
+      newLable.onclick = function() { deleteTime(idID) }
+      storedData.appendChild(newLable)
+      timerCount += 1
+    
+      lable.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;0'
+      button.innerHTML = "Start"
+    }
+  }
+  function timeUpdate(id) {
+    var lable = document.getElementById(id + "TimerDisplay")
+    var date = new Date()
+    lable.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;' + ((parseInt(date.getTime()) - parseInt(lable.for.split("<>")[0])) / 1000).toFixed(1)
+  }
+  function deleteTime(id) {
+    var ele = document.getElementById(id)
+    if(confirm("Do you want to delete: " + ele.innerHTML)) {
+      ele.remove()
+    }
+  }
+
+function tryNumberify(str) {
+  try {
+    if(str.match(/^-?\d+$/)){                 //valid integer (positive or negative)
+      return parseInt(str);
+    } else if(str.match(/^\d+\.\d+$/)){        //valid float
+      return parseFloat(str)
+    }
+  } catch {
+    
+  }
+  return str;
+}
+
+</script>

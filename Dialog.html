@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+  </head>
+  <body>
+      <button class="tablink2" onclick="openPage('Tab1', this, '#666')" id="defaultOpen">Scouting Entry</button>
+      <button class="tablink2" onclick="openPage('Tab2', this, '#666')" id="pitScoutingTabButton">Pit Scouting</button>
+      <button class="tablink2" onclick="openPage('Tab3', this, '#666')" id="graphTabButton">Custom Data Points</button>
+      <button class="tablink2" onclick="openPage('Tab4', this, '#666')" id="teamLookupTabButton">Team Lookup</button>
+      <button class="tablink2" onclick="openPage('Tab5', this, '#666')" id="matchLookupTabButton">Match Lookup</button>
+     
+      <div id="Tab1" class="tabcontent">
+        <div class="row">
+          <div id="Tab1Colum" class="column left">
+            <h3>Auto</h3>
+            <div id="autoContent"></div>
+            <br><hr><br><h3>Tele</h3><br>
+            <div id="teleContent"></div>
+          </div>
+          <div class="column center">
+            <p></p>
+          </div>
+          <div class="column right">
+            <button class="dialogButton" onclick="saveDataEntryConfig()">Save</button>
+            <button class="dialogButton" onclick="clearAll()">Clear All</button>
+            <button id="moveUP" class="dialogButton" onclick="updateListOrder(false)">Move Up</button>
+            <button id="moveDown" class="dialogButton" onclick="updateListOrder(true)">Move Down</button>
+            <button id="newWidgetButton" class="dialogButton" onclick="newWidget()">New</button>
+            <button id="deleteWidgetButton" class="dialogButton" onclick="deleteWiget()">Delete</button><hr>
+            <label>Name:&nbsp;&nbsp;</label><input type="text" maxlength="30" id="activeName" class="largeInput2" onchange="sidebarUpdated()"><br><br>
+            <label>Auto or Tele:&nbsp;&nbsp;</label><select id="AORT" onchange="sidebarUpdated()">
+              <option value="Auto">Auto</option>
+              <option value="Tele">Tele</option>
+            </select><br><br>
+            <label>Type:&nbsp;&nbsp;</label><select name="position" id="Type" onchange="sidebarUpdated()">
+              <option value="PM">Plus/Minus</option>
+              <option value="CB">Checkbox</option>
+              <option value="TE">Text Entry</option>
+              <option value="SL">Slider</option>
+              <option value="DD">Drop Down</option>
+              <option value="TM">Timer</option>
+            </select>
+            <div id="CustomWidgetSettingsDiv"><p></p></div>
+          </div>
+        </div>
+      </div>    
+
+      <div id="Tab2" class="tabcontent">
+        <div class="row">
+          <div id="Tab1Colum" class="column left">
+            <h3>Pit Scouting</h3>
+            <div id="pitScoutContent"></div>
+          </div>
+          <div class="column center">
+            <p></p>
+          </div>
+          <div class="column right">
+            <button class="dialogButton" onclick="savePitScoutConfig()">Save</button>
+            <button class="dialogButton" onclick="clearAll()">Clear All</button>
+            <button id="moveUPPitScout" class="dialogButton" onclick="updateListOrder(false)">Move Up</button>
+            <button id="moveDownPitScout" class="dialogButton" onclick="updateListOrder(true)">Move Down</button>
+            <button id="newWidgetButtonPitScout" class="dialogButton" onclick="newWidget()">New</button>
+            <button id="deleteWidgetButtonPitScout" class="dialogButton" onclick="deleteWiget()">Delete</button><hr>
+            <label>Name:&nbsp;&nbsp;</label><input type="text" id="activeNamePitScout" class="largeInput2" onchange="sidebarUpdated()"><br><br>
+            <label>Type:&nbsp;&nbsp;</label><select name="position" id="TypePitScout" onchange="sidebarUpdated()">
+              <option value="PM">Plus/Minus</option>
+              <option value="CB">Checkbox</option>
+              <option value="TE">Text Entry</option>
+              <option value="SL">Slider</option>
+              <option value="DD">Drop Down</option>
+              <option value="TM">Timer</option>
+            </select>
+            <div id="CustomWidgetSettingsDivPitScout"><p></p></div>
+          </div>
+        </div>
+      </div>
+      <div id="Tab3" class="tabcontent">
+        <h3>Customize Datapoints</h3>
+        <button class="dialogButton" onclick="saveCustomConfigData()">Save</button><br><hr><br><br>
+        <div id="customizeDatapointsContent"></div>
+        <button onclick="newCostomConfigEntery()">New</button>
+        
+      </div>
+      <div id="Tab4" class="tabcontent">
+        
+      </div>
+      <div id="Tab5" class="tabcontent">
+        <h3>List Datapoints (must be custom)</h3>
+        <button class="dialogButton" onclick="saveTeamLookup()">Save</button><br><hr><br><br>
+        <textarea id="teamLookupEntry" cols="100" rows="10"></textarea> 
+      </div>
+
+      <?!= HtmlService.createHtmlOutputFromFile('WidgetsJavascript').getContent(); ?>
+      <?!= HtmlService.createHtmlOutputFromFile('DialogJavascript').getContent(); ?>
+  </body>
+</html>

@@ -1,0 +1,631 @@
+      <script>
+        var activePage = ""
+
+        var scoutConfigData = []
+        var pitConfigData = []
+        var customDatapointsConfig = []
+        var teamLookupConfig = []
+        var created = 0
+        var customCreated = 0
+        var activeID = ""
+        var lastactiveID = ""
+        document.getElementById("Tab1Colum").style.minHeight = "" + (screen.height/2) + "px"
+
+        load()
+        function load() {
+          google.script.run.withSuccessHandler(function(dataIn) {
+            scoutConfigData = []
+            pitConfigData = []
+            for(var i = 0; i < dataIn.scoutingConfig.length; i++) {
+              scoutConfigData.push(JSON.parse(dataIn.scoutingConfig[i]))
+            }
+            for(var i = 0; i < dataIn.pitConfig.length; i++) {
+              pitConfigData.push(JSON.parse(dataIn.pitConfig[i]))
+            }
+            for(var i = 0; i < dataIn.customDataConfig.length; i++) {
+              customDatapointsConfig.push(JSON.parse(dataIn.customDataConfig[i]))
+            }
+            for(var i = 0; i < dataIn.teamLookupConfig.length; i++) {
+              teamLookupConfig.push(JSON.parse(dataIn.teamLookupConfig[i]))
+            }
+
+            drawView()
+            drawCustomConfig()
+            drawTeamLookup()
+          }).getData()
+        }
+
+        //// Team lookup ////
+        function drawTeamLookup() {
+          var text = ""
+          for(var i = 0; i < teamLookupConfig.length; i++) {
+            text += teamLookupConfig[i].name + "," + teamLookupConfig[i].type + "\n"
+          }
+          document.getElementById("teamLookupEntry").value = text;
+        }
+
+        function saveTeamLookup() {
+          var text = document.getElementById("teamLookupEntry").value
+          var elements = text.split(/\r?\n/)
+          for(var i = 0; i < elements.length; i++) {
+            var two = elements[i].split(",")
+            elements[i] = [JSON.stringify({"name" : two[0], "type": two[1]})]
+          }
+          
+          google.script.run.withSuccessHandler(function() {
+            google.script.run.setValues(null, "Config", "E3", "E" + (elements.length + 2), elements)
+          }).clearContent(null, "Config", "E3", "E")
+        }
+
+        //// Custom data point functions ////
+        /* JSON Format
+        name: display name
+        type: 'numeric' or 'text'
+        configData: '<dp name><operation>....'
+        */
+        function drawCustomConfig() {
+          var div = document.getElementById("customizeDatapointsContent")
+          div.innerHTML = ""
+          for(var i = 0; i < customDatapointsConfig.length; i++) {
+            div.appendChild(getCustomConfigEntryDiv(customDatapointsConfig[i], "CustomConfigDIVnum" + i))
+            div.appendChild(document.createElement("BR"))
+          }
+          customCreated = customDatapointsConfig.length
+        }
+
+        function newCostomConfigEntery() {
+          var defaultData = {
+            name: "",
+            type: "numeric",
+            configData: [],
+          }
+          var div = document.getElementById("customizeDatapointsContent")
+          div.appendChild(getCustomConfigEntryDiv(defaultData, "CustomConfigDIVnum" + customCreated))
+          customCreated++;
+        }
+
+        function saveCustomConfigData() {
+          var div = document.getElementById("customizeDatapointsContent") 
+          var divs = div.getElementsByTagName("DIV")
+
+          var data = []
+          for(var i = 0; i < divs.length; i+=2) {
+            var json = {}
+            json.name = document.getElementById(divs[i].id + "NAME").value
+            json.type = document.getElementById(divs[i].id + "TYPE").value
+
+            var widgArr = divs[i+1].querySelectorAll(".CUSTOMCONFIGDATA")
+            var configDataArr = []
+            for(var j = 0; j < widgArr.length; j++) {
+              configDataArr.push(widgArr[j].value)
+            }
+            json.configData = configDataArr
+            data.push([JSON.stringify(json)])
+          }
+
+          google.script.run.withSuccessHandler(function() {
+            google.script.run.setValues(null, "Config", "C3", "C" + (data.length + 2), data)
+          }).clearContent(null, "Config", "C3", "C")
+        }
+
+        function getCustomConfigEntryDiv(data, id) {
+          var div = document.createElement("DIV")
+          div.className = "CustomConfigEntryDiv"
+          div.id = id
+          div.className = "timmerDiv"
+
+          var deleteButton = document.createElement("BUTTON")
+          deleteButton.innerHTML = "Remove"
+          deleteButton.onclick = function() {
+            div.innerHTML = ""
+            div.remove()
+          }
+
+          var nameLabel = document.createElement("LABEL")
+          nameLabel.innerHTML = "&nbsp;&nbsp;Name:&nbsp;&nbsp;"
+          var nameInput = document.createElement("INPUT")
+          nameInput.className = "largeInput"
+          nameInput.id = id + "NAME"
+          nameInput.value = data.name
+          var typeSelect = document.createElement("SELECT")
+          typeSelect.id = id + "TYPE"
+          var typeSelectOption1 = document.createElement("OPTION")
+          typeSelectOption1.innerHTML = "Numeric&nbsp;&nbsp;"
+          typeSelectOption1.value = "numeric"
+          var typeSelectOption2 = document.createElement("OPTION")
+          typeSelectOption2.innerHTML = "Text"
+          typeSelectOption2.value = "text"
+          typeSelect.add(typeSelectOption1)
+          typeSelect.add(typeSelectOption2)
+          typeSelect.value = data.type
+          var nameSpacer = document.createElement("LABEL")
+          nameSpacer.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;Config:&nbsp;&nbsp;"
+
+          var configDiv = document.createElement("DIV")
+          configDiv.id = id + "PULLCONFIGDIV"
+          configDiv.style.display = "inline-block"
+
+          var newDatapointConfigButton = document.createElement("BUTTON")
+          newDatapointConfigButton.innerHTML = "New"
+          newDatapointConfigButton.onclick = function() { 
+            if(!configDiv.innerHTML == "") { configDiv.appendChild(getOpeationDropdown("+")); }
+            configDiv.appendChild(getAllDatapointsDropdown("")); 
+          }
+          var delDatapointConfigButton = document.createElement("BUTTON")
+          delDatapointConfigButton.innerHTML = "Delete"
+          delDatapointConfigButton.onclick = function() { 
+            var allWidgets = configDiv.querySelectorAll(".CUSTOMCONFIGDATA")
+            allWidgets[allWidgets.length - 1].remove()
+            allWidgets[allWidgets.length - 2].remove()
+          }
+          
+          configDiv.appendChild(getAllDatapointsDropdown(data.configData[0]))
+          for(var i = 1; i < data.configData.length; i+=2) {
+            configDiv.appendChild(getOpeationDropdown(data.configData[i]))
+            configDiv.appendChild(getAllDatapointsDropdown(data.configData[i+1]))
+          }
+
+          div.appendChild(deleteButton)
+          div.appendChild(nameLabel)
+          div.appendChild(nameInput)
+          div.appendChild(typeSelect)
+          div.appendChild(nameSpacer)
+          div.appendChild(newDatapointConfigButton)
+          div.appendChild(delDatapointConfigButton)
+          div.appendChild(configDiv)
+          div.appendChild(document.createElement("BR"))
+          div.appendChild(document.createElement("BR"))
+          return div
+        }
+
+        function getAllDatapointsDropdown(defValue) {
+          allDatapoints = []
+          for(var i = 0; i < scoutConfigData.length; i++) { allDatapoints.push(scoutConfigData[i].name) }
+          for(var i = 0; i < pitConfigData.length; i++) { allDatapoints.push(pitConfigData[i].name) }
+
+          var select = document.createElement("SELECT")
+          select.style.width = "auto"
+          select.className = "CUSTOMCONFIGDATA"
+
+          var optionsIN = getOptionsList()
+          for(var i = 0; i < optionsIN.length; i++) {
+            select.add(optionsIN[i])
+          }
+
+          select.value = defValue
+          return select
+        }
+        function getOptionsList() {
+          allDatapoints = []
+          for(var i = 0; i < scoutConfigData.length; i++) { allDatapoints.push(scoutConfigData[i].name) }
+          for(var i = 0; i < pitConfigData.length; i++) { allDatapoints.push(pitConfigData[i].name) }
+
+          var outArr = []
+          for(var i = 0; i < allDatapoints.length; i++) {
+            var option = document.createElement("OPTION")
+            option.innerHTML = allDatapoints[i]
+            option.value = allDatapoints[i]
+            outArr.push(option)
+          }
+          return outArr
+        }
+        function selectHasValue(obj, value) {
+          if (obj !== null) {
+            return (obj.innerHTML.indexOf('value="' + value + '"') > -1);
+          } else {
+            return false;
+          }
+        } 
+        function updateDropdowns() {
+          var div = document.getElementById("customizeDatapointsContent") 
+          var divs = div.getElementsByTagName("DIV")  
+
+          for(var i = 0; i < divs.length; i+=2) {
+            var widgArr = divs[i+1].querySelectorAll(".CUSTOMCONFIGDATA")
+            var configDataArr = []
+            for(var j = 0; j < widgArr.length; j+=2) {
+              var widgetToUpdate = widgArr[j]
+              var saveValue = widgetToUpdate.value
+              widgetToUpdate.innerHTML = ""
+              var optionsToAdd = getOptionsList()
+              for(var k = 0; k < optionsToAdd.length; k++) {
+                widgetToUpdate.add(optionsToAdd[k])
+              }
+              if(!selectHasValue(widgetToUpdate, saveValue)) { widgetToUpdate.value = "" }
+              else { widgetToUpdate.value = saveValue }
+            }
+          }
+        }
+        function getOpeationDropdown(defValue) {
+          var select = document.createElement("SELECT")
+          select.className = "CUSTOMCONFIGDATA"
+
+          var plus = document.createElement("OPTION")
+          plus.innerHTML = "+"
+          plus.value = "+"
+          select.add(plus)
+          var minus = document.createElement("OPTION")
+          minus.innerHTML = "-"
+          minus.value = "-"
+          select.add(minus)
+          var times = document.createElement("OPTION")
+          times.innerHTML = "*"
+          times.value = "*"
+          select.add(times)
+          var divide = document.createElement("OPTION")
+          divide.innerHTML = "/"
+          divide.value = "/"
+          select.add(divide)
+
+          select.value = defValue
+          return select
+        }
+
+        //// Pit and Data entry config functions ////
+        function saveDataEntryConfig() {
+          var saveData = []
+          for(var i = 0; i < scoutConfigData.length; i++) { saveData.push([JSON.stringify(scoutConfigData[i])] ) }
+          google.script.run.withSuccessHandler(function() {
+            google.script.run.setValues(null, "Config", "A3", "A" + (saveData.length + 2), saveData)
+          }).clearContent(null, "Config", "A3", "A")
+        }
+
+        function savePitScoutConfig() {
+          var saveData = []
+          for(var i = 0; i < pitConfigData.length; i++) { saveData.push([JSON.stringify(pitConfigData[i])] ) }
+          google.script.run.withSuccessHandler(function() {
+            google.script.run.setValues(null, "Config", "B3", "B" + (saveData.length + 2), saveData)
+          }).clearContent(null, "Config", "B3", "B")
+        }
+
+        function deleteWiget() {
+          var data = scoutConfigData
+          if(activePage == "Tab2") {data = pitConfigData}
+
+          for(var i = 0; i < data.length; i++) {
+            if(data[i].name == activeID) {
+              data.splice(i, 1)
+            }
+            drawView()
+          }
+        }
+        function clearAll() {
+          if(confirm("Are you sure?")) {
+            if(activePage == "Tab2") {
+              pitConfigData = []
+            } else {
+              scoutConfigData = []
+            }
+            drawView()
+          }
+        }
+        function reorder() {
+          var tele = []
+          var auto = []
+          for(var i = 0; i < scoutConfigData.length; i++) {
+            if(scoutConfigData[i].period == "Auto") {
+              auto.push(scoutConfigData[i])
+            } else {
+              tele.push(scoutConfigData[i])
+            }
+          }
+          scoutConfigData = auto
+          for(var i = 0; i < tele.length; i++) {
+            scoutConfigData.push(tele[i])
+          }
+        }
+
+        function updateListOrder(isMoveUp) {
+          reorder()
+          data = scoutConfigData
+          if(activePage == "Tab2") { data = pitConfigData } 
+
+          var newList = []
+          for(var i = 0; i < data.length; i++) {
+            if(isMoveUp) {
+              if(i+1 != data.length && activeID == data[i].name) {
+                newList.push(data[i+1])
+                newList.push(data[i])
+                i += 1;
+              } else {
+                newList.push(data[i])
+              }
+            } else {
+
+              if(i+1 != data.length && activeID == data[i+1].name) {
+                newList.push(data[i+1])
+                newList.push(data[i])
+                i += 1;
+              } else {
+                newList.push(data[i])
+              }
+            }
+          }
+
+          if(activePage == "Tab2") { 
+            pitConfigData = newList
+          } else {
+            scoutConfigData = newList
+            reorder() 
+          }
+          drawView()
+        }
+
+        function getNewID() {
+          var newWidgerID = "New" + created
+          var isGood = true;
+          for(var i = 0; i < 100; i++) {
+            newWidgerID = "New" + created
+            isGood = true
+
+            for(var j = 0; j < scoutConfigData.length; j++) {
+              if(scoutConfigData[j].name == newWidgerID) {
+                isGood = false
+              }
+            }
+            for(var j = 0; j < pitConfigData.length; j++) {
+              if(pitConfigData[j].name == newWidgerID) {
+                isGood = false
+              }
+            }
+            if(isGood) { break; }
+            created += 1;
+          }
+          return newWidgerID
+        }
+
+        function newWidget() {
+          var data = scoutConfigData
+          if(activePage == "Tab2") {data = pitConfigData}
+          var newWidgerID = getNewID()
+
+          var blankData = {
+            name: "New " + created,
+            period: "Auto",
+            type: "PM",
+          }
+
+          if(activePage == "Tab2") { blankData.period = "Pit" }
+          if(activeID != "") { 
+            for(var i = 0; i < data.length; i++) {
+              if(data[i].name == activeID) {
+                blankData.period = data[i].period
+              }
+            }
+          }
+          activeID = blankData.name
+          data.push(blankData)
+          created += 1
+
+          updateSidebar()
+          drawView()
+        }
+        function updateSidebar() {
+          var data = scoutConfigData
+          var pitTabAdder = ""
+          if(activePage == "Tab2") {data = pitConfigData; pitTabAdder = "PitScout"}
+          for(var i = 0; i < data.length; i++) {
+            var json = data[i]
+            if(json.name == activeID) {
+              document.getElementById("activeName" + pitTabAdder).value = json.name
+              if(activePage == "Tab1") { document.getElementById("AORT").value = json.period }
+              document.getElementById("Type" + pitTabAdder).value = json.type
+              try{ 
+              document.getElementById(activeID).style.backgroundColor = "#484848"
+              document.getElementById(lastactiveID).style.backgroundColor = "#282828"
+              }catch(err) {}
+              if(json.type == "SL") {
+                var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
+                if(!document.getElementById("MinSliderConfig" + pitTabAdder) || lastactiveID != activeID) {
+                  div.innerHTML = ""
+                  var minVal = 0
+                  var maxVal = 100
+                  var startVal = 0
+                  if(json.hasOwnProperty("min")) { minVal = parseInt(json.min) }
+                  if(json.hasOwnProperty("max")) { maxVal = parseInt(json.max) }
+                  if(json.hasOwnProperty("start")) { startVal = parseInt(json.start) }
+                  var maxLabel = document.createElement("LABLE")
+                  maxLabel.innerHTML = "Max:&nbsp;&nbsp;"
+                  var minLabel = document.createElement("LABLE")
+                  minLabel.innerHTML = "Min:&nbsp;&nbsp;"
+                  var startLabel = document.createElement("LABLE")
+                  startLabel.innerHTML = "Inital:&nbsp;&nbsp;"
+                  var max = document.createElement("INPUT")
+                  max.id = "MaxSliderConfig" + pitTabAdder
+                  max.className = "largeInput2"
+                  max.onchange = sidebarUpdated
+                  max.value = maxVal
+                  var min = document.createElement("INPUT")
+                  min.id = "MinSliderConfig" + pitTabAdder
+                  min.value = minVal
+                  min.className = "largeInput2"
+                  min.onchange = sidebarUpdated
+                  var start = document.createElement("INPUT")
+                  start.id = "StartSliderConfig" + pitTabAdder
+                  start.value = startVal
+                  start.className = "largeInput2"
+                  start.onchange = sidebarUpdated
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(maxLabel)
+                  div.appendChild(max)
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(minLabel)
+                  div.appendChild(min)
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(document.createElement("BR"))
+                  div.appendChild(startLabel)
+                  div.appendChild(start)
+                }
+              } else if(json.type == "DD") {
+                var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
+                if(!document.getElementById("List options seperated by new line" + pitTabAdder)  || lastactiveID != activeID) {
+                  div.innerHTML = ""
+                  div.appendChild(getNewTextBox({name:"List options seperated by new line" + pitTabAdder}))
+                  var a = document.getElementById("List options seperated by new line" + pitTabAdder + dataPickupIDAdder)
+                  try {
+                  for(var j = 0; j < (json.options).length; j++) {
+                    a.value = a.value + (json.options)[j] + "\n"
+                  }
+                  } catch(err) { }
+                  document.getElementById("List options seperated by new line" + pitTabAdder + dataPickupIDAdder).onchange = sidebarUpdated
+                }
+              } else {
+                var div = document.getElementById('CustomWidgetSettingsDiv' + pitTabAdder)
+                div.innerHTML = ""
+              }
+            }
+          }
+          lastactiveID = activeID
+        }
+        
+        const findDuplicates = (arr) => {
+          let sorted_arr = arr.slice().sort(); // You can define the comparing function here. 
+          // JS by default uses a crappy string compare.
+          // (we use slice to clone the array so the
+          // original array won't be modified)
+          let results = [];
+          for (let i = 0; i < sorted_arr.length - 1; i++) {
+            if (sorted_arr[i + 1] == sorted_arr[i]) {
+              results.push(sorted_arr[i]);
+            }
+          }
+          return results;
+        }
+        function getDuplicateNames() {
+          var names = []
+          for(var i = 0; i < scoutConfigData.length; i++) { names.push(scoutConfigData[i].name) }
+          for(var i = 0; i < pitConfigData.length; i++) { names.push(pitConfigData[i].name) }
+          return duplicates = findDuplicates(names)
+        }
+
+        function correctNames() {
+          var duplicates = getDuplicateNames()
+          for(var i = 0; i < scoutConfigData.length; i++) {
+            if(duplicates.includes(scoutConfigData[i].name)) {
+              scoutConfigData[i].name = scoutConfigData[i].name + "UNIQE" + i
+            }
+          }
+          for(var i = 0; i < pitConfigData.length; i++) {
+            if(duplicates.includes(pitConfigData[i].name)) {
+              pitConfigData[i].name = pitConfigData[i].name + "UNIQE" + i
+            }
+          }
+          if(getDuplicateNames().length > 0) { correctNames() }
+        }
+
+        var allowedChariters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '?', '#', '(', ')', '/']
+
+        function sidebarUpdated() {
+          var data = scoutConfigData
+          var pitTabAdder = ""
+          if(activePage == "Tab2") {data = pitConfigData; pitTabAdder = "PitScout"}
+
+          for(var i = 0; i < data.length; i++) {
+            var newJSON = {}
+            var json = data[i]
+            if(json.name == activeID) {
+              var acriveNameIn = document.getElementById("activeName" + pitTabAdder).value
+              var strOutName = ""
+              for(var j = 0; j < acriveNameIn.length; j++) {
+                if(allowedChariters.includes(acriveNameIn[j])) { strOutName += acriveNameIn[j] }
+              }
+              json.name = strOutName
+              activeID = strOutName
+              if(activePage == "Tab2") { json.period = "Pit" } else { json.period = document.getElementById("AORT").value }
+              json.type = document.getElementById("Type" + pitTabAdder).value
+              if(json.type == "SL") {
+                try {
+                  json.min = document.getElementById("MinSliderConfig" + pitTabAdder).value
+                  json.max = document.getElementById("MaxSliderConfig" + pitTabAdder).value
+                  json.start = document.getElementById("StartSliderConfig" + pitTabAdder).value
+                } catch(err) {}
+              } else if(json.type == "DD") {
+                try {
+                  var dataAA = (document.getElementById("List options seperated by new line" + pitTabAdder + dataPickupIDAdder).value).split("\n")
+                  json.options = dataAA
+                } catch(err) {}
+              }
+            }
+          }
+          // correctNames()
+          drawView()
+          updateSidebar()
+          updateDropdowns()
+        }
+        function drawView() {
+          correctNames()
+          var data = scoutConfigData
+          if(activePage == "Tab2") {data = pitConfigData}
+
+          document.getElementById('autoContent').innerHTML = ""
+          document.getElementById('teleContent').innerHTML = ""
+          document.getElementById('pitScoutContent').innerHTML = ""
+          for(var i = 0; i < data.length; i++) {
+            var json = data[i]
+            var dest = "autoContent"
+            if(json.period == "Tele") { dest = "teleContent" }
+            if(json.period == "Pit") { dest = "pitScoutContent"} 
+            if(json.type == "PM") {
+              var ele = getNewPlusMinus(json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById(dest).appendChild(ele);
+            } else if(json.type == "CB") {
+              var ele = getNewCheckbox(json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById(dest).appendChild(ele);
+            } else if(json.type == "TE") {
+              var ele = getNewTextBox(json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById(dest).appendChild(ele);
+            } else if(json.type == "TM") {
+              var ele = getNewTimmer(json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById(dest).appendChild(ele);
+            } else if(json.type == "DD") {
+              var ele = getNewDropDown(json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById(dest).appendChild(ele);
+            } else if(json.type == "SL") {
+              var ele = getNewSlider(json)
+              ele.onclick = setActiveID.bind(null, ele.id)
+              document.getElementById(dest).appendChild(ele);
+            }
+          }
+        }
+        function setActiveID(id) {
+          activeID = id
+          updateSidebar();
+        }
+        function correctColor() {
+          try {
+            document.getElementById(activeID).style.backgroundColor = '#484848'
+          } catch(err) {}
+
+        }
+
+        function openPage(pageName, elmnt, color) {
+          // Hide all elements with class="tabcontent" by default
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+          }
+
+          // Remove the background color of all tablinks/buttons
+          tablinks = document.getElementsByClassName("tablink");
+          for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.backgroundColor = "";
+          }
+
+          // Show the specific tab content
+          activePage = pageName;
+          document.getElementById(pageName).style.display = "block";
+
+          // Add the specific color to the button used to open the tab content
+          elmnt.style.backgroundColor = color;
+          drawView()
+        }
+        setInterval(correctColor, 100)
+        document.getElementById("defaultOpen").click();
+      </script>

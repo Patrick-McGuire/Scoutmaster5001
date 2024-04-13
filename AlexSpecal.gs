@@ -288,7 +288,20 @@ function generateTeamLookupArray(data, team, data1, data2, data3, data4,data5,da
   // prepDebug();
   var matches = getTeamMatchs(team);
   var output = []
+
+  // output.push([
+  //   "SCALE",
+
+  // ])
+
   for(var i = 0; i < matches.length; i++) {
+    // const row = [];
+    // row.push(matches[i]);
+    // for(var j = 0; j < arguments.length; j++) {
+    //   row.push(getDatapoint(team, arguments[i], matches[i], true, "listSTR"));
+    // }
+    // output.push(row);
+
     output.push([
       matches[i],
       getDatapoint(team, data1, matches[i], true, "listSTR"),

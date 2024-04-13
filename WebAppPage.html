@@ -103,6 +103,7 @@
         </select><br>
         <label>Highlight Teams:  </label><input type="text" id="highlighttTeamNumber" onchange="updateGraph()"   class="largeInput"><br><br>
        <div id="chart_div" style="width: 1000px; height: 500px;"></div>
+
       </div>
       <div id="Tab6" class="tabcontent">
         <h2>Match Lookup</h2>
@@ -133,6 +134,10 @@
             <p id="ModalContent">Some text in the Modal..</p>
           </div>
         </div>
+
+
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
       <?!= HtmlService.createHtmlOutputFromFile('WidgetsJavascript').getContent(); ?>
       <?!= HtmlService.createHtmlOutputFromFile('WebAppScripts').getContent(); ?>

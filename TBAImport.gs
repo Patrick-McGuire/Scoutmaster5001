@@ -2,7 +2,7 @@
 var matchSchedule = "TBA Import";
 
 function getEventKey(spreadsheet) {
-  return "2024mabri";   //2022marea
+  return "2024necmp1";   //2022marea
 }
 
 function tbaImportAll() {

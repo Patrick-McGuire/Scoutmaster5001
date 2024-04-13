@@ -18,6 +18,7 @@ function getNewPlusMinus(options) {
   div.id = id
   div.className = plusMinusID
   var p = document.createElement("P")
+  p.className = "scoutingFormText";
   p.innerHTML = name + ":"
   var b1 = document.createElement("BUTTON");
   b1.innerHTML = "+"
@@ -46,6 +47,7 @@ function getNewCheckbox(options) {
   div.className = checkBoxID
   var label = document.createElement("LABEL")
   label.innerHTML = name + ":  "
+  label.className = "scoutingFormText";
   var input = document.createElement("INPUT")
   input.id = id + dataPickupIDAdder
   input.type = "checkbox"
@@ -62,6 +64,7 @@ function getNewTextBox(options) {
   div.id = id
   div.className = textBoxID
   var p = document.createElement("P")
+  p.className = "scoutingFormText";
   p.innerHTML = name + ":"
   var input = document.createElement("TEXTAREA")
   input.id = id + dataPickupIDAdder
@@ -87,6 +90,7 @@ function getNewSlider(options) {
   div.id = id
   div.className = sliderID
   var label = document.createElement("LABLE")
+  label.className = "scoutingFormText";
   label.innerHTML = name = name + ":   "
   var slider = document.createElement("INPUT")
   slider.type = "range"
@@ -118,6 +122,7 @@ function getNewDropDown(options) {
   div.id = id
   div.className = dropDownID
   var lable = document.createElement("LABLE")
+  lable.className = "scoutingFormText";
   lable.innerHTML = name + ":   "
   var select = document.createElement("SELECT")
   select.className = "scoutPos"
@@ -138,8 +143,9 @@ function getNewDropDown(options) {
     }
   }
   select.value = ""
+  select.selectedIndex = 0;
   var otherBox = document.createElement("INPUT")
-  otherBox.className = "bigInput"
+  otherBox.className = "hugeInput"
   otherBox.id = id + dataPickupIDAdder + "OTHER"
   otherBox.style.visibility = "hidden";
 

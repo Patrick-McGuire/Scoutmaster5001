@@ -17,6 +17,7 @@
       <div id="Tab1" class="tabcontent">
         <h2>Scouting Entry Form</h2>
         <br>
+        <p style="margin : 0; padding-top:5;">Directions: Choose your assigned scouting position, and enter the current match number. The team number will show up automatically. That is the team you will scout for the match.You can submit while offline, but DO NOT refresh the page if you are on a phone. Depending on your phone's settings it may erase the data. You can click on the green button at the bottom of the page to upload data submitted offline. If the button is red that means you are offline. You can manual enter team and match by selecting None in scouting position</p><br>
         <label for="position">Scouting Position:</label>
         <select name="position" id="position" onchange="positionChangeEvent()" class="scoutPos">
           <option value="7">None</option>
@@ -28,7 +29,8 @@
           <option value="5">Blue 3</option>
         </select><p></p>
         <label>Match Number: </label><input type="text" id="matchNumber" class="bigInput" value="1" oninput="matchChangeEvent()">
-        <label>Team Number: </label><input type="text" id="teamNumber" class="bigInput" oninput="matchChangeEvent()">
+        <label>Team Number: </label><input type="text" id="teamNumber" class="bigInput" oninput="matchChangeEvent()"><br>
+        <label>Your Name: </label><input type="text" id="scoutName" class="hugeInput">
        
         <br><br><hr><h3>Auto</h3>
         <div id="autoContent"></div>
@@ -42,18 +44,26 @@
 
       <div id="Tab2" class="tabcontent">
         <h2>Match Schedule</h2>
+        <p style="margin : 0; padding-top:5;">Note: Matches that are highlighted green have data</p> 
+        <p style="margin : 0; padding-top:5;">Tip: You can enter  multiple teams in the highlight box seperated by commas (no spaces)</p> 
+        <p style="margin : 0; padding-top:5;">Tip: You can click on a team to go to their full data table</p>
+        <p style="margin : 0; padding-top:5;">Tip: You can click on a match to go to match lookup</p><br>
         <label>Highlight Teams:  </label>
         <input type="text" id="highlighttTeamNumberMS" onchange="createMatchSchedule()" class="largeInput"><br><br><br>
         <div id="matchSchedContent"></div>
       </div>
       <div id="Tab3" class="tabcontent">
         <h2>Pit Scouting</h2>
-        <label>Team Number: </label><input type="text" id="pitScoutTeamNumber" class="bigInput"><br><hr><br>
+        <p style="margin : 0; padding-top:5;">Directions: You can submit while offline, but DO NOT refresh the page if you are on a phone. Depending on your phone's settings it may erase the data. You can click on the green button at the bottom of the page to upload data submitted offline. If the button is red that means you are offline. You can manual enter team and match by selecting None in scouting position</p><br>
+        <label>Team Number: </label><input type="text" id="pitScoutTeamNumber" class="bigInput">
+        <label>Your Name: </label><input type="text" id="scoutNamePit" class="hugeInput">
+        <br><hr><br>
         <div id="pitScoutingContent"></div><br><hr><br>
         <button type="button" class="submitButton" id="onlinePitSubmit" onclick="pitScoutingSubmit()">Submit</button>
         <button type="button" class="submitButton" id="offlinePitSubmit" onclick="submitStoredPitData()">Submit Stored Data (0)</button>
         <br><hr><br>
         <h3>Upload Picture</h3>
+        <p>Make sure to set the team number at the top of the page (it get's deleted when you submit the form above)</p>
         <form id="imgForm">
           <input type="file" name="myFile" id="file">
           <input class="blue" type="button" id="submitBtn" value="Upload File" onclick="uploadthis(this.parentNode)">
@@ -62,26 +72,42 @@
       </div>
       <div id="Tab4" class="tabcontent">
         <h2>Team List</h2>
+        <p style="margin : 0; padding-top:5;">Tip: You can click on images to expand them</p> 
+        <p style="margin : 0; padding-top:5;">Tip: You can click on comments (or any data) to view the full response in a popup</p><br>
         <div id="teamListContent"></div>
 
-        <div id="myModal" class="modal">
+        <!-- <div id="myModal" class="modal">
           <div class="modal-content">
             <span class="close" onclick="hideTeamsListModal()">&times;</span>
             <p id="ModalContent">Some text in the Modal..</p>
           </div>
-        </div>
+        </div> -->
 
       </div>
       <div id="Tab5" class="tabcontent">
         <h3>Graph:</h3>
-        <p>Uses Averages</p>
-        <label>X Axis: </label><select name="XAxis" id="xAxisGraphSelector" onchange="updateGraph()"></select><br>
-        <label>Y Axis: </label><select name="YAxis" id="yAxisGraphSelector" onchange="updateGraph()"></select><br>
+        <p style="margin : 0; padding-top:5;">Tip: You can enter  multiple teams in the highlight box seperated by commas (no spaces)</p><br>
+        <label>X Axis: </label><select name="XAxis" id="xAxisGraphSelector" onchange="updateGraph()"></select>
+        <label>Type: </label>
+        <select name="Data Type" id="graphDataTypeX" onchange="updateGraph()">
+          <option value="Average">Average</option>
+          <option value="Max">Max</option>
+          <option value="Min">Min</option>
+        </select><br>
+        <label>Y Axis: </label><select name="YAxis" id="yAxisGraphSelector" onchange="updateGraph()"></select>
+        <label>Type: </label>
+        <select name="Data Type" id="graphDataTypeY" onchange="updateGraph()">
+          <option value="Average">Average</option>
+          <option value="Max">Max</option>
+          <option value="Min">Min</option>
+        </select><br>
         <label>Highlight Teams:  </label><input type="text" id="highlighttTeamNumber" onchange="updateGraph()"   class="largeInput"><br><br>
        <div id="chart_div" style="width: 1000px; height: 500px;"></div>
       </div>
       <div id="Tab6" class="tabcontent">
         <h2>Match Lookup</h2>
+        <p style="margin : 0; padding-top:5;">Tip: You can click on images to expand them</p> 
+        <p style="margin : 0; padding-top:5;">Tip: You can click on comments (or any data) to view the full response in a popup</p><br>
         <label>Match Number: </label><select name="Match Number" id="matchLookupMatchNumberSelect" onchange="updateMatchLookup()"></select><br><br><br>
         <div id="matchLookupContent">
             <div id="matchLookupSummaryTable"></div>
@@ -101,6 +127,12 @@
       <div id="Tab7" class="tabcontent">
         
       </div>
+        <div id="myModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="hideTeamsListModal()">&times;</span>
+            <p id="ModalContent">Some text in the Modal..</p>
+          </div>
+        </div>
 
       <?!= HtmlService.createHtmlOutputFromFile('WidgetsJavascript').getContent(); ?>
       <?!= HtmlService.createHtmlOutputFromFile('WebAppScripts').getContent(); ?>

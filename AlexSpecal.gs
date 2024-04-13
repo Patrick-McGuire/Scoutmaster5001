@@ -280,6 +280,85 @@ function getTotalGPForTeam(data, team) {
   return getDataByID(team, "Total Game Pieces", true, "listSTR");
 }
 
+
+
+
+function generateTeamLookupArray(data, team, data1, data2, data3, data4,data5,data6) {
+  prep(data);
+  // prepDebug();
+  var matches = getTeamMatchs(team);
+  var output = []
+  for(var i = 0; i < matches.length; i++) {
+    output.push([
+      matches[i],
+      getDatapoint(team, data1, matches[i], true, "listSTR"),
+      getDatapoint(team, data2, matches[i], true, "listSTR"),
+      getDatapoint(team, data3, matches[i], true, "listSTR"),
+      getDatapoint(team, data4, matches[i], true, "listSTR"),
+      getDatapoint(team, data5, matches[i], true, "listSTR"),
+      getDatapoint(team, data6, matches[i], true, "listSTR")
+    ]);
+  }
+  return output;
+}
+
+function maxAverageOfAllTeams(datapoint) {
+  var max = 0;
+  for(var i = 0; i < teamList.length; i++) {
+    var val = average(getDataByID(teamList[i], datapoint, true, "listStr"));
+    if(val > max) {
+      max = val;
+    }
+  }
+  return max;
+}
+
+function generateRadioMapArray(data, team, data1, data2, data3, data4,data5,data6) {
+  prep(data);
+  // prepDebug();
+  var output = []
+
+  output.push([
+    average(getDataByID(team, data1, true, "listStr")),
+    maxAverageOfAllTeams(data1)
+  ]);
+  output.push([
+    average(getDataByID(team, data2, true, "listStr")),
+    maxAverageOfAllTeams(data2)
+  ]);
+  output.push([
+    average(getDataByID(team, data3, true, "listStr")),
+    maxAverageOfAllTeams(data3)
+  ]);
+  output.push([
+    average(getDataByID(team, data4, true, "listStr")),
+    maxAverageOfAllTeams(data4)
+  ]);
+  output.push([
+    average(getDataByID(team, data5, true, "listStr")),
+    maxAverageOfAllTeams(data5)
+  ]);
+  output.push([
+    average(getDataByID(team, data6, true, "listStr")),
+    maxAverageOfAllTeams(data6)
+  ]);
+  // output.push(average(getDataByID(team, data2, true, "listStr")));
+  // output.push(average(getDataByID(team, data3, true, "listStr")));
+  // output.push(average(getDataByID(team, data4, true, "listStr")));
+  // output.push(average(getDataByID(team, data5, true, "listStr")));
+  // output.push(average(getDataByID(team, data6, true, "listStr")));
+  return output;
+}
+
+
+
+
+
+function getMatchTimeSeries(data, team, datapoint) {
+  prep(data);
+  return getDataByID(team, datapoint, true, "listSTR");
+}
+
 function getMobilityForTeam(data, team) {
   prep(data);
   return getDataByID(team, "Taxi", true, "listSTR");

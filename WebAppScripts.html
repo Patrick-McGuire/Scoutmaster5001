@@ -75,6 +75,7 @@ function scoutingSubmit() {
   var json = {}
   json["match"] = document.getElementById("matchNumber").value
   json["team"] = document.getElementById("teamNumber").value
+  json["scout"] = document.getElementById("scoutName").value
   for(var i = 0; i < allScoutingFormWidgetObj.length; i++) {
     var widgetClassName = allScoutingFormWidgetObj[i].className
     var dataPickupWidget = document.getElementById(allScoutingFormWidgetObj[i].id + dataPickupIDAdder)
@@ -88,6 +89,11 @@ function scoutingSubmit() {
       }
       json[allScoutingFormWidgetObj[i].id] = dropDownValue
       dataPickupWidget.value = ""
+
+      try {
+        dataPickupWidget.selectedIndex = 0;
+      } catch (error) {}
+
       document.getElementById(allScoutingFormWidgetObj[i].id + dataPickupIDAdder + "OTHER").value = ""
       document.getElementById(allScoutingFormWidgetObj[i].id + dataPickupIDAdder + "OTHER").style.visibility = "hidden";
     } else if(widgetClassName == sliderID) {
@@ -144,6 +150,7 @@ function pitScoutingSubmit() {
 
   var json = {}
   json["team"] = document.getElementById("pitScoutTeamNumber").value
+  json["pitScout"] = document.getElementById("scoutNamePit").value
   for(var i = 0; i < allPitScoutingFormWidgetObj.length; i++) {
     var widgetClassName = allPitScoutingFormWidgetObj[i].className
     var dataPickupWidget = document.getElementById(allPitScoutingFormWidgetObj[i].id + dataPickupIDAdder)
@@ -156,7 +163,8 @@ function pitScoutingSubmit() {
         dropDownValue = document.getElementById(allPitScoutingFormWidgetObj[i].id + dataPickupIDAdder + "OTHER").value
       }
       json[allPitScoutingFormWidgetObj[i].id] = dropDownValue
-      dataPickupWidget.value = ""
+      // dataPickupWidget.value = ""
+      dataPickupWidget.selectedIndex = 0;
       document.getElementById(allPitScoutingFormWidgetObj[i].id + dataPickupIDAdder + "OTHER").value = ""
       document.getElementById(allPitScoutingFormWidgetObj[i].id + dataPickupIDAdder + "OTHER").style.visibility = "hidden";
     } else if(widgetClassName == sliderID) {
@@ -741,8 +749,15 @@ function forceNumberify(str, defaultVal) {
 }
 
   function updateGraph() {
+        //     <select name="Data Type" id="graphDataType" onchange="updateGraph()">
+        //   <option value="Average">Average</option>
+        //   <option value="Max">Max</option>
+        //   <option value="Min">Min</option>
+        // </select><br>
     var xID = document.getElementById("xAxisGraphSelector").value
     var yID = document.getElementById("yAxisGraphSelector").value
+    var dataTypeX = document.getElementById("graphDataTypeX").value
+    var dataTypeY = document.getElementById("graphDataTypeY").value
 
     var teams = getTeams({ useMatchData: true, usePitData: false, useMatchSchedule: false, useRawTeamList: false })
     var highlighttTeamNumber = "" + document.getElementById("highlighttTeamNumber").value
@@ -755,8 +770,23 @@ function forceNumberify(str, defaultVal) {
       var color = "white"
       if(team == highlighttTeamNumber || highlightTeams.includes(team)) { color = "blue" }
       try {
-        var xDataPnt = forceNumberify(getDatapointsAvByID(team, xID, true), 0);
-        var yDataPnt = forceNumberify(getDatapointsAvByID(team, yID, true), 0);
+        var xDataPnt = 0;
+        var yDataPnt = 0;
+        if(dataTypeX == "Average") {
+          xDataPnt = forceNumberify(getDatapointsAvByID(team, xID, true), 0);
+        } else if(dataTypeX == "Max") {
+          xDataPnt = forceNumberify(getDatapointsMaxByID(team, xID, true), 0);
+        } else if(dataTypeX == "Min") {
+          xDataPnt = forceNumberify(getDatapointsMinByID(team, xID, true), 0);
+        }
+        if(dataTypeY == "Average") {
+          yDataPnt = forceNumberify(getDatapointsAvByID(team, yID, true), 0);
+        } else if(dataTypeY == "Max") {
+          yDataPnt = forceNumberify(getDatapointsMaxByID(team, yID, true), 0);
+        } else if(dataTypeY == "Min") {
+          yDataPnt = forceNumberify(getDatapointsMinByID(team, yID, true), 0);
+        }
+
         data.push([xDataPnt, yDataPnt, team, 'point {size: 4; fill-color: ' + color + '}'])
       } catch(e) {
         data.push([0, 0, team, 'point {size: 4; fill-color: ' + color + '}'])
@@ -1149,6 +1179,45 @@ function getDatapointsAvByID(team, datapointID, isMatchData) {
   }
   return dataOut/cnt;
 }
+
+function getDatapointsMaxByID(team, datapointID, isMatchData) {
+  var matches = getTeamMatchs(team)
+  var dataOut = 0;
+  for(var i = 0; i < matches.length; i++) {
+    var dp = 0
+    try {
+      var dp = getDatapoint(team, datapointID, matches[i], isMatchData, options)
+    } catch(e) {
+      dp = null
+    }
+    if(!(dp === null) && typeof dp === 'number') {
+      if(dp > dataOut) {
+        dataOut = dp;
+      }
+    }
+  }
+  return dataOut;
+}
+function getDatapointsMinByID(team, datapointID, isMatchData) {
+  var matches = getTeamMatchs(team)
+  var dataOut = 999;
+  for(var i = 0; i < matches.length; i++) {
+    var dp = 0
+    try {
+      var dp = getDatapoint(team, datapointID, matches[i], isMatchData, options)
+    } catch(e) {
+      dp = null
+    }
+    if(!(dp === null) && typeof dp === 'number') {
+      if(dp < dataOut) {
+        dataOut = dp;
+      }
+    }
+  }
+  return dataOut;
+}
+
+
 function getDatapointsByID(team, datapointID, isMatchData, options) {
   var matches = getTeamMatchs(team)
   var dataOut = {

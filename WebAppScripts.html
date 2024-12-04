@@ -475,11 +475,16 @@ function updateMatchLookup() {
   blueDiv.innerHTML = ""
   var redDiv = blueDiv;
 
+
+  var headerML1 = document.createElement("h3")
+  headerML1.innerHTML = "Red"
+  blueDiv.appendChild(headerML1)
   for(var i = 0; i < 3; i++) {
     var nameP = document.createElement("P")
     nameP.innerHTML = match[i]
     blueDiv.appendChild(nameP)
     blueDiv.appendChild(getImg(match[i]));
+    createTeamGraph(match[i], blueDiv) 
     try {
       if(teamHasMatchData(match[i])) {
         blueDiv.appendChild(getTeamFullDataTable(match[i], true))
@@ -491,11 +496,17 @@ function updateMatchLookup() {
     blueDiv.appendChild(document.createElement("BR"))
     blueDiv.appendChild(document.createElement("BR"))
   }
+  blueDiv.appendChild(document.createElement("hr"))
+  var headerML2 = document.createElement("h3")
+  headerML2.innerHTML = "Blue"
+  blueDiv.appendChild(headerML2)
+
   for(var i = 3; i < 6; i++) {
     var nameP = document.createElement("P")
     nameP.innerHTML = match[i]
     redDiv.appendChild(nameP)
     redDiv.appendChild(getImg(match[i]));
+    createTeamGraph(match[i], redDiv) 
     try {
       if(teamHasMatchData(match[i])) {
         redDiv.appendChild(getTeamFullDataTable(match[i], true))
@@ -508,6 +519,88 @@ function updateMatchLookup() {
     redDiv.appendChild(document.createElement("BR"))
   }
 }
+
+function createTeamGraph(team, target) {
+  try {
+  // Create a canvas element
+  var wrapperDiv = document.createElement('div');
+  wrapperDiv.className = "teamChart"
+  target.appendChild(wrapperDiv);
+  wrapperDiv.onclick = function() {
+    wrapperDiv.innerHTML = "";
+    setTimeout(function() { createTeamGraphInternal(team, wrapperDiv) },500);
+  }
+  createTeamGraphInternal(team, wrapperDiv)
+  } catch(e){
+    alert(JSON.stringify(e))
+  }
+}
+
+function createTeamGraphInternal(team, wrapperDiv) {
+  wrapperDiv.innerHTML = "";
+  // Create a canvas element
+  // var wrapperDiv = document.createElement('div');
+  // wrapperDiv.onclick = function() {alert(23) }
+  // wrapperDiv.className = "teamChart"
+  var canvas = document.createElement('canvas');
+  canvas.className = "canvasGraphTeam"
+  // Append the canvas to the existing div
+  // target.appendChild(wrapperDiv);
+  wrapperDiv.appendChild(canvas)
+
+  // Create the data structure
+  // var team = 125;
+  const xValues = getTeamMatchs(team);
+  var datapoints = ["Total Auto", "Total Tele", "Av Climb", "Av Pass"];
+  var colors = ["red", "green", "blue", "yellow", "pink", "orange"]
+  var datasetsForGraph = [];
+  for(var i = 0; i < datapoints.length; i++) {
+    var series = [];
+    for(var j = 0; j < xValues.length; j++) {
+      series.push(getDatapoint(team, datapoints[i], xValues[j], true, "listSTR"));
+    }
+    datasetsForGraph.push({
+      label: datapoints[i],
+      data: series,
+      borderColor: colors[i],
+      fill: false,
+      tension: 0,
+    })
+  }
+
+  // Chart.js configuration
+  var ctx = canvas.getContext('2d');
+  var myChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: xValues,
+      datasets: datasetsForGraph,
+    },
+    options: {
+          animation: {
+        duration: 0
+    },
+      // responsive: false,
+      maintainAspectRatio: false,
+      legend: {display: true},
+      scales: {
+        y: {
+          beginAtZero: true,
+          min: 0,
+          // max: 100,
+          ticks: { color: '#eee' },
+          grid: { color: '#555' }
+        },
+        x: {
+          ticks: { color: '#eee' },
+          grid: { color: '#555' }
+        }
+      },
+      plugins: { legend: { labels: { color: '#eee' } } }
+    }
+  });
+}
+
 
 function createMatchLookup() {
   var matchSelect = document.getElementById('matchLookupMatchNumberSelect');
@@ -537,6 +630,7 @@ function createTeamLookup() {
     nameP.innerHTML = teams[i]
     targetDiv.appendChild(nameP)
     targetDiv.appendChild(getImg(teams[i]))
+    // createTeamGraph(teams[i], targetDiv) 
     targetDiv.appendChild(document.createElement("BR"))
     if(teamHasMatchData(teams[i])) {
       targetDiv.appendChild(getTeamFullDataTable(teams[i], true))
@@ -1339,6 +1433,7 @@ function getDataFromSpreadsheet() {
 }
 // Saves all of the spreadsheet data localy and then runs the funtions that create the web app
 function handleIncData(incData) {
+  // alert(1)
   // alert(JSON.stringify(incData))
   // Parse all of the JSONs and save them to arrays  matchSchedule
   // matchLookupConfig

@@ -1,3 +1,41 @@
+function objectKeys(data) {
+  return Object.keys(JSON.parse(data))
+}
+
+function flattenPitData(data) {
+  var keys = 	["team","pitScout","DT Wheels","DT Type","DT Motor Type","Can Score in Amp","Can Score in Speaker","Can Score in Trap","Can Climb","Intake Locations","Intake Type","Scoring preference","Pit Comment"]
+
+  var allJson = removeDuplicates(data);
+  var output = [keys];
+  for(var i = 0; i < allJson.length; i++) {
+    try {
+    var data = JSON.parse(allJson[i])
+    output.push([])
+    for(var j = 0; j < keys.length; j++) {
+      output[i+1][j] = data[keys[j]]
+    }
+    } catch(e){}
+  }
+  return output;
+}
+
+function flattenMatchData(data) {
+  var keys = ["match","team","scout","Starting Location","Auto Pickup", "Auto Amp","Auto Speaker","1st Midline Note","2nd Midline Note","3rd Midline Note","4th Midline Note","Auto Comments","Tele Pickup","Tele Amp","Tele Speaker","Tele Pass","Trap","Disconnected","Climb","Failed Climb","Harmony","Defence Rating","Played Defence","Was Defended","Tele Comments"]
+
+  var allJson = removeDuplicates(data);
+  var output = [keys];
+  for(var i = 0; i < allJson.length; i++) {
+    try {
+    var data = JSON.parse(allJson[i])
+    output.push([])
+    for(var j = 0; j < keys.length; j++) {
+      output[i+1][j] = data[keys[j]]
+    }
+    } catch(e){}
+  }
+  return output;
+}
+
 function rowsToJson() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Copy of Example Data");
   var data = sheet.getDataRange().getValues();
@@ -288,7 +326,20 @@ function generateTeamLookupArray(data, team, data1, data2, data3, data4,data5,da
   // prepDebug();
   var matches = getTeamMatchs(team);
   var output = []
+
+  // output.push([
+  //   "SCALE",
+
+  // ])
+
   for(var i = 0; i < matches.length; i++) {
+    // const row = [];
+    // row.push(matches[i]);
+    // for(var j = 0; j < arguments.length; j++) {
+    //   row.push(getDatapoint(team, arguments[i], matches[i], true, "listSTR"));
+    // }
+    // output.push(row);
+
     output.push([
       matches[i],
       getDatapoint(team, data1, matches[i], true, "listSTR"),
